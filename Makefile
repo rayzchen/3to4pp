@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 16 2024) on Fri May 17 16:09:35 2024
+# Created by gmakemake (Ubuntu May 17 2024) on Fri May 17 16:22:15 2024
 #
 
 #
@@ -43,7 +43,11 @@ COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c
 CPP = $(CPP) $(CPPFLAGS)
 ########## Flags from header.mak
 
-CCLIBFLAGS = -lglfw -lGL
+ifeq ($(OS),Windows_NT)
+	CCLIBFLAGS = -lglfw3 -lopengl32 -lgdi32
+else
+	CCLIBFLAGS = -lglfw -lGL
+endif
 CPPFLAGS = -DGLEW_NO_GLU -Iinclude
 
 ########## End of flags from header.mak

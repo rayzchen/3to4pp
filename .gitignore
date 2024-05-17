@@ -1,3 +1,5 @@
-*.o
+*.[osa]
 3to4
+*.exe
 .vscode/
+include/GLFW/
