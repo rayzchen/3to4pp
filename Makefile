@@ -1,5 +1,5 @@
 #
-# Created by makemake (Ubuntu May 16 2024) on Fri May 17 14:58:29 2024
+# Created by gmakemake (Ubuntu May 16 2024) on Fri May 17 16:02:12 2024
 #
 
 #
@@ -31,8 +31,8 @@
 		$(AR) $(ARFLAGS) $@ $%
 		$(RM) $%
 
-CC =		cc
-CXX =		c++
+CC =		gcc
+CXX =		g++
 
 RM = rm -f
 AR = ar
@@ -76,7 +76,7 @@ camera.o:	camera.h
 pieces.o:	pieces.h
 render.o:	render.h
 shaders.o:	shaders.h
-window.o:	camera.h render.h window.h
+window.o:	camera.h pieces.h render.h shaders.h window.h
 glew.o:	
 
 #
