@@ -14,6 +14,9 @@ class Pieces {
     public:
         static vec3 colors[8];
         static PieceType mesh1c;
+        static PieceType mesh2c;
+        static PieceType mesh3c;
+        static PieceType mesh4c;
 };
 
 #endif // pieces.h

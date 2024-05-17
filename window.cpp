@@ -40,9 +40,9 @@ Window::Window() {
 
 void Window::run() {
     PieceMesh *mesh = new PieceMesh(
-        Pieces::mesh1c.vertices,
-        Pieces::mesh1c.triangles,
-        Pieces::mesh1c.edges
+        Pieces::mesh2c.vertices,
+        Pieces::mesh2c.triangles,
+        Pieces::mesh2c.edges
     );
 
     mat4x4 model;
@@ -51,14 +51,15 @@ void Window::run() {
     camera->setYaw(M_PI / 180 * -20);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glDepthMask(GL_TRUE);
     glLineWidth(2);
 
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[0]);
-    shader->setVec3("pieceColors[1]", Pieces::colors[1]);
-    shader->setVec3("pieceColors[2]", Pieces::colors[2]);
-    shader->setVec3("pieceColors[3]", Pieces::colors[3]);
+    shader->setVec3("pieceColors[1]", Pieces::colors[2]);
+    shader->setVec3("pieceColors[2]", Pieces::colors[4]);
+    shader->setVec3("pieceColors[3]", Pieces::colors[6]);
 
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window)) {
