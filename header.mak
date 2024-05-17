@@ -1,0 +1,2 @@
+CCLIBFLAGS = -lglfw -lGL
+CPPFLAGS = -DGLEW_NO_GLU -Iinclude
