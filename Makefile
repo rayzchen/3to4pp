@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 16 2024) on Fri May 17 16:02:12 2024
+# Created by gmakemake (Ubuntu May 16 2024) on Fri May 17 16:09:35 2024
 #
 
 #
@@ -50,13 +50,13 @@ CPPFLAGS = -DGLEW_NO_GLU -Iinclude
 
 
 CPP_FILES =	3to4.cpp camera.cpp pieces.cpp render.cpp shaders.cpp window.cpp
-C_FILES =	glew.c
+C_FILES =	glad.c
 PS_FILES =	
 S_FILES =	
 H_FILES =	camera.h pieces.h render.h shaders.h window.h
 SOURCEFILES =	$(H_FILES) $(CPP_FILES) $(C_FILES) $(S_FILES)
 .PRECIOUS:	$(SOURCEFILES)
-OBJFILES =	camera.o pieces.o render.o shaders.o window.o glew.o 
+OBJFILES =	camera.o pieces.o render.o shaders.o window.o glad.o 
 
 #
 # Main targets
@@ -77,7 +77,7 @@ pieces.o:	pieces.h
 render.o:	render.h
 shaders.o:	shaders.h
 window.o:	camera.h pieces.h render.h shaders.h window.h
-glew.o:	
+glad.o:	
 
 #
 # Housekeeping

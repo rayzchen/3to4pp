@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stdlib.h>
@@ -27,9 +27,7 @@ Window::Window() {
     }
 
     glfwMakeContextCurrent(window);
-    GLenum err = glewInit();
-    if (err != GLEW_OK) {
-        std::cerr << glewGetErrorString(err) << std::endl;
+    if (!gladLoadGL()) {
         exit(EXIT_FAILURE);
     }
 
