@@ -16,6 +16,7 @@ class Window {
         GLFWwindow *window;
         Shader *shader;
         Camera *camera;
+        PieceRenderer *renderer;
         double lastTime;
 };
 

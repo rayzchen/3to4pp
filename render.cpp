@@ -2,9 +2,9 @@
 #include "render.h"
 #include <iostream>
 
-PieceMesh::PieceMesh(std::vector<float> vertices, std::vector<unsigned int> triangles, std::vector<unsigned int> edges) {
-    length1 = triangles.size();
-    length2 = edges.size();
+PieceMesh::PieceMesh(PieceType type) {
+    length1 = type.triangles.size();
+    length2 = type.edges.size();
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &faceVao);
     glGenVertexArrays(1, &edgeVao);
@@ -13,9 +13,9 @@ PieceMesh::PieceMesh(std::vector<float> vertices, std::vector<unsigned int> tria
 
     glBindVertexArray(faceVao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, type.vertices.size() * sizeof(float), type.vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, faceEbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(unsigned int), triangles.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, type.triangles.size() * sizeof(unsigned int), type.triangles.data(), GL_STATIC_DRAW);
     // 3 floats for XYZ, 1 float for color
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -24,9 +24,9 @@ PieceMesh::PieceMesh(std::vector<float> vertices, std::vector<unsigned int> tria
 
     glBindVertexArray(edgeVao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, type.vertices.size() * sizeof(float), type.vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, edgeEbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, edges.size() * sizeof(unsigned int), edges.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, type.edges.size() * sizeof(unsigned int), type.edges.data(), GL_STATIC_DRAW);
     // 3 floats for XYZ, 1 float for color
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -101,4 +101,77 @@ void Shader::setVec3(const char *loc, vec3 vector) {
 void Shader::setMat4(const char *loc, mat4x4 matrix) {
     int shaderLocation = glGetUniformLocation(program, loc);
     glUniformMatrix4fv(shaderLocation, 1, GL_FALSE, matrix[0]);
+}
+
+PieceRenderer::PieceRenderer() {
+    spacing = 0.0f;
+    sensitivity = 0.011f;
+    meshes[0] = new PieceMesh(Pieces::mesh1c);
+    meshes[1] = new PieceMesh(Pieces::mesh2c);
+}
+float PieceRenderer::getSpacing() {
+    return spacing;
+}
+
+void PieceRenderer::setSpacing(float spacing) {
+    this->spacing = spacing;
+    if (this->spacing < 0.0f) {
+        this->spacing = 0.0f;
+    } else if (this->spacing > 1.5f) {
+        this->spacing = 1.5f;
+    }
+}
+
+void PieceRenderer::render1c(Shader *shader, int x, int y, int z, int color) {
+    shader->use();
+    shader->setVec3("pieceColors[0]", Pieces::colors[color]);
+    
+    float scale = getSpacing() + 1.0f;
+    mat4x4 model;
+    mat4x4_translate(model, x * scale, y * scale, z * scale);
+    shader->setMat4("model", model);
+
+    shader->setInt("border", 0);
+    meshes[0]->renderFaces();
+    shader->setInt("border", 1);
+    meshes[0]->renderEdges();
+}
+
+void PieceRenderer::render2c(Shader *shader, int x, int y, int z, int color1, int color2, CellLocation dir) {
+    shader->use();
+    shader->setVec3("pieceColors[0]", Pieces::colors[color1]);
+    shader->setVec3("pieceColors[1]", Pieces::colors[color2]);
+    
+    float scale = getSpacing() + 1.0f;
+    mat4x4 model;
+    mat4x4_translate(model, x * scale, y * scale, z * scale);
+    
+    switch (dir) {
+        case DOWN: mat4x4_rotate(model, model, 1, 0, 0, M_PI); break;
+        case FRONT: mat4x4_rotate(model, model, 1, 0, 0, M_PI_2); break;
+        case BACK: mat4x4_rotate(model, model, 1, 0, 0, -M_PI_2); break;
+        case RIGHT: mat4x4_rotate(model, model, 0, 0, 1, -M_PI_2); break;
+        case LEFT: mat4x4_rotate(model, model, 0, 0, 1, M_PI_2); break;
+    }
+    
+    shader->setMat4("model", model);
+
+    shader->setInt("border", 0);
+    meshes[1]->renderFaces();
+    shader->setInt("border", 1);
+    meshes[1]->renderEdges();
+}
+
+void PieceRenderer::updateMouse(GLFWwindow* window, double dt) {
+    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
+    if (state == GLFW_PRESS) {
+        double curX, curY;
+        glfwGetCursorPos(window, &curX, &curY);
+        if (lastY != -1.0f) {
+            setSpacing(spacing - (curY - lastY) * sensitivity);
+        }
+        lastY = curY;
+    } else {
+        lastY = -1.0f;
+    }
 }

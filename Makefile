@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 17 2024) on Fri May 17 16:22:15 2024
+# Created by gmakemake (Ubuntu May 17 2024) on Sat May 18 09:28:10 2024
 #
 
 #
@@ -53,14 +53,14 @@ CPPFLAGS = -DGLEW_NO_GLU -Iinclude
 ########## End of flags from header.mak
 
 
-CPP_FILES =	3to4.cpp camera.cpp pieces.cpp render.cpp shaders.cpp window.cpp
+CPP_FILES =	3to4.cpp camera.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
 C_FILES =	glad.c
 PS_FILES =	
 S_FILES =	
-H_FILES =	camera.h pieces.h render.h shaders.h window.h
+H_FILES =	camera.h pieces.h puzzle.h render.h shaders.h window.h
 SOURCEFILES =	$(H_FILES) $(CPP_FILES) $(C_FILES) $(S_FILES)
 .PRECIOUS:	$(SOURCEFILES)
-OBJFILES =	camera.o pieces.o render.o shaders.o window.o glad.o 
+OBJFILES =	camera.o pieces.o puzzle.o render.o shaders.o window.o glad.o 
 
 #
 # Main targets
@@ -78,9 +78,10 @@ all:	3to4
 3to4.o:	camera.h render.h window.h
 camera.o:	camera.h
 pieces.o:	pieces.h
+puzzle.o:	
 render.o:	render.h
 shaders.o:	shaders.h
-window.o:	camera.h pieces.h render.h shaders.h window.h
+window.o:	camera.h pieces.h puzzle.h render.h shaders.h window.h
 glad.o:	
 
 #

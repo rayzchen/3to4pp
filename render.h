@@ -1,12 +1,15 @@
 #ifndef RENDER_H
 #define RENDER_H
 
+#include <GLFW/glfw3.h>
 #include <linmath.h>
 #include <vector>
+#include "pieces.h"
+#include "puzzle.h"
 
 class PieceMesh {
     public:
-        PieceMesh(std::vector<float> vertices, std::vector<unsigned int> triangles, std::vector<unsigned int> edges);
+        PieceMesh(PieceType type);
         void renderFaces();
         void renderEdges();
 
@@ -25,6 +28,24 @@ class Shader {
 
     private:
         unsigned int program;
+};
+
+class PieceRenderer {
+    public:
+        PieceRenderer();
+        float getSpacing();
+        void setSpacing(float spacing);
+        void render1c(Shader *shader, int x, int y, int z, int color);
+        void render2c(Shader *shader, int x, int y, int z, int color1, int color2, CellLocation dir);
+        
+        void updateMouse(GLFWwindow* window, double dt);
+    
+    private:
+        PieceMesh *meshes[4];
+        float spacing;
+        
+        float sensitivity;
+        float lastY;
 };
 
 #endif // render.h
