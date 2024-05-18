@@ -61,9 +61,11 @@ void Window::run() {
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window)) {
         double tick = glfwGetTime();
-        camera->updateMouse(window, lastTime - tick);
-        renderer->updateMouse(window, lastTime - tick);
+        double dt = lastTime - tick;
         lastTime = tick;
+        camera->updateMouse(window, dt);
+        renderer->updateMouse(window, dt);
+        renderer->updateAnimations(dt);
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

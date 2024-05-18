@@ -44,6 +44,8 @@ class Puzzle {
         std::array<std::array<Piece, 3>, 3> innerSlice;
         // [y][z]
         std::array<std::array<Piece, 3>, 3> outerSlice;
+        // Measured from innerSlice
+        int middleSlicePos;
         Piece topCell;
         Piece bottomCell;
         std::array<Piece, 3> frontCell;

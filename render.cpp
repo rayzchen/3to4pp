@@ -3,6 +3,12 @@
 #include <iostream>
 #include <array>
 
+void mat4x4_scale_pos(mat4x4 M, float k) {
+    for (int i = 0; i < 3; i++) {
+        M[3][i] *= k;
+    }
+}
+
 PieceMesh::PieceMesh(PieceType type) {
     length1 = type.triangles.size();
     length2 = type.edges.size();
@@ -106,7 +112,10 @@ void Shader::setMat4(const char *loc, mat4x4 matrix) {
 
 PuzzleRenderer::PuzzleRenderer() {
     spacing = 0.0f;
-    sensitivity = 0.011f;
+    sensitivity = 0.01f;
+    animationProgress = 0.0f;
+    mat4x4_identity(model);
+    
     meshes[0] = new PieceMesh(Pieces::mesh1c);
     meshes[1] = new PieceMesh(Pieces::mesh2c);
     meshes[2] = new PieceMesh(Pieces::mesh3c);
@@ -131,7 +140,9 @@ void PuzzleRenderer::render1c(Shader *shader, const std::array<float, 3> pos, Co
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
+    mat4x4_dup(model, this->model);
+    mat4x4_translate_in_place(model, pos[0], pos[1], pos[2]);
+    mat4x4_scale_pos(model, scale);
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
@@ -147,7 +158,9 @@ void PuzzleRenderer::render2c(Shader *shader, const std::array<float, 3> pos, co
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
+    mat4x4_dup(model, this->model);
+    mat4x4_translate_in_place(model, pos[0], pos[1], pos[2]);
+    mat4x4_scale_pos(model, scale);
     
     switch (dir) {
         case DOWN: mat4x4_rotate(model, model, 1, 0, 0, M_PI); break;
@@ -173,7 +186,9 @@ void PuzzleRenderer::render3c(Shader *shader, const std::array<float, 3> pos, co
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
+    mat4x4_dup(model, this->model);
+    mat4x4_translate_in_place(model, pos[0], pos[1], pos[2]);
+    mat4x4_scale_pos(model, scale);
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
@@ -191,7 +206,9 @@ void PuzzleRenderer::render4c(Shader *shader, const std::array<float, 3> pos, co
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
+    mat4x4_dup(model, this->model);
+    mat4x4_translate_in_place(model, pos[0], pos[1], pos[2]);
+    mat4x4_scale_pos(model, scale);
     if (orientation > 3) {
         orientation -= 4;
         mat4x4_rotate(model, model, 1, 0, 0, M_PI);
@@ -227,24 +244,30 @@ void PuzzleRenderer::renderPuzzle(Shader *shader, Puzzle *puzzle) {
     renderSlice(shader, puzzle->innerSlice, -0.5f);
     renderSlice(shader, puzzle->outerSlice, 3.5f);
     
-    render1c(shader, {-0.5, 2, 0}, puzzle->topCell.a);
-    render1c(shader, {-0.5, -2, 0}, puzzle->bottomCell.a);
+    float offset = -0.5 + puzzle->middleSlicePos;
+    render1c(shader, {offset, 2, 0}, puzzle->topCell.a);
+    render1c(shader, {offset, -2, 0}, puzzle->bottomCell.a);
 
-    render2c(shader, {-0.5, 1, 2}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
-    render1c(shader, {-0.5, 0, 2}, puzzle->frontCell[1].a);
-    render2c(shader, {-0.5, -1, 2}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
+    render2c(shader, {offset, 1, 2}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
+    render1c(shader, {offset, 0, 2}, puzzle->frontCell[1].a);
+    render2c(shader, {offset, -1, 2}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
 
-    render2c(shader, {-0.5, 1, -2}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
-    render1c(shader, {-0.5, 0, -2}, puzzle->backCell[1].a);
-    render2c(shader, {-0.5, -1, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
+    render2c(shader, {offset, 1, -2}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
+    render1c(shader, {offset, 0, -2}, puzzle->backCell[1].a);
+    render2c(shader, {offset, -1, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
 }
 
-void PuzzleRenderer::renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset) {
+void PuzzleRenderer::renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset, std::array<int, 3> sliceFilter) {
     render1c(shader, {offset, 0, 0}, cell[1][1][1].a);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
             std::array<int, 3> pos = {0, 0, 0};
             pos[i] += j * -2 + 1;
+            if ((sliceFilter[0] != -1 && pos[0] + 1 != sliceFilter[0]) ||
+                (sliceFilter[1] != -1 && pos[1] + 1 != sliceFilter[1]) ||
+                (sliceFilter[2] != -1 && pos[2] + 1 != sliceFilter[2])) {
+                continue;
+            }
             Piece piece = cell[pos[0] + 1][pos[1] + 1][pos[2] + 1];
             CellLocation orientation = (CellLocation)(i * 2 + j + 2);
             render2c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b}, orientation);
@@ -257,6 +280,11 @@ void PuzzleRenderer::renderCell(Shader *shader, const std::array<std::array<std:
                 std::array<int, 3> pos = {0, 0, 0};
                 pos[i] = k * -2 + 1;
                 pos[(i + 1) % 3] = j * -2 + 1;
+                if ((sliceFilter[0] != -1 && pos[0] + 1 != sliceFilter[0]) ||
+                    (sliceFilter[1] != -1 && pos[1] + 1 != sliceFilter[1]) ||
+                    (sliceFilter[2] != -1 && pos[2] + 1 != sliceFilter[2])) {
+                    continue;
+                }
                 Piece piece = cell[pos[0] + 1][pos[1] + 1][pos[2] + 1];
                 render3c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c});
             }
@@ -268,6 +296,11 @@ void PuzzleRenderer::renderCell(Shader *shader, const std::array<std::array<std:
             for (int k = 0; k < 2; k++) {
                 std::array<int, 3> pos = {i * -2 + 1, j * -2 + 1, k * -2 + 1};
                 int orientation = (i + k) + 2*i*(1 - k);
+                if ((sliceFilter[0] != -1 && pos[0] + 1 != sliceFilter[0]) ||
+                    (sliceFilter[1] != -1 && pos[1] + 1 != sliceFilter[1]) ||
+                    (sliceFilter[2] != -1 && pos[2] + 1 != sliceFilter[2])) {
+                    continue;
+                }
                 Piece piece = cell[pos[0] + 1][pos[1] + 1][pos[2] + 1];
                 render4c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c, piece.d}, 4*j + orientation);
             }
@@ -296,4 +329,8 @@ void PuzzleRenderer::renderSlice(Shader *shader, const std::array<std::array<Pie
             render3c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c});
         }
     }
+}
+
+void PuzzleRenderer::updateAnimations(double dt) {
+    animationProgress += dt;
 }
