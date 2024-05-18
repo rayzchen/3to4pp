@@ -35,9 +35,10 @@ class PieceRenderer {
         PieceRenderer();
         float getSpacing();
         void setSpacing(float spacing);
-        void render1c(Shader *shader, int x, int y, int z, int color);
-        void render2c(Shader *shader, int x, int y, int z, int color1, int color2, CellLocation dir);
-        void render3c(Shader *shader, int x, int y, int z, int color1, int color2, int color3);
+        void render1c(Shader *shader, std::array<float, 3> pos, Color color);
+        void render2c(Shader *shader, std::array<float, 3> pos, std::array<Color, 2> colors, CellLocation dir);
+        void render3c(Shader *shader, std::array<float, 3> pos, std::array<Color, 3> colors);
+        void render4c(Shader *shader, std::array<float, 3> pos, std::array<Color, 4> colors, int orientation);
         
         void updateMouse(GLFWwindow* window, double dt);
     

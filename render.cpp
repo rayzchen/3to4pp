@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include "render.h"
 #include <iostream>
+#include <array>
 
 PieceMesh::PieceMesh(PieceType type) {
     length1 = type.triangles.size();
@@ -109,6 +110,7 @@ PieceRenderer::PieceRenderer() {
     meshes[0] = new PieceMesh(Pieces::mesh1c);
     meshes[1] = new PieceMesh(Pieces::mesh2c);
     meshes[2] = new PieceMesh(Pieces::mesh3c);
+    meshes[3] = new PieceMesh(Pieces::mesh4c);
 }
 float PieceRenderer::getSpacing() {
     return spacing;
@@ -123,13 +125,13 @@ void PieceRenderer::setSpacing(float spacing) {
     }
 }
 
-void PieceRenderer::render1c(Shader *shader, int x, int y, int z, int color) {
+void PieceRenderer::render1c(Shader *shader, std::array<float, 3> pos, Color color) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[color]);
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, x * scale, y * scale, z * scale);
+    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
@@ -138,21 +140,21 @@ void PieceRenderer::render1c(Shader *shader, int x, int y, int z, int color) {
     meshes[0]->renderEdges();
 }
 
-void PieceRenderer::render2c(Shader *shader, int x, int y, int z, int color1, int color2, CellLocation dir) {
+void PieceRenderer::render2c(Shader *shader, std::array<float, 3> pos, std::array<Color, 2> colors, CellLocation dir) {
     shader->use();
-    shader->setVec3("pieceColors[0]", Pieces::colors[color1]);
-    shader->setVec3("pieceColors[1]", Pieces::colors[color2]);
+    shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
+    shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, x * scale, y * scale, z * scale);
+    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
     
     switch (dir) {
         case DOWN: mat4x4_rotate(model, model, 1, 0, 0, M_PI); break;
-        case FRONT: mat4x4_rotate(model, model, 1, 0, 0, M_PI_2); break;
-        case BACK: mat4x4_rotate(model, model, 1, 0, 0, -M_PI_2); break;
         case RIGHT: mat4x4_rotate(model, model, 0, 0, 1, -M_PI_2); break;
         case LEFT: mat4x4_rotate(model, model, 0, 0, 1, M_PI_2); break;
+        case FRONT: mat4x4_rotate(model, model, 1, 0, 0, M_PI_2); break;
+        case BACK: mat4x4_rotate(model, model, 1, 0, 0, -M_PI_2); break;
     }
     
     shader->setMat4("model", model);
@@ -163,21 +165,46 @@ void PieceRenderer::render2c(Shader *shader, int x, int y, int z, int color1, in
     meshes[1]->renderEdges();
 }
 
-void PieceRenderer::render3c(Shader *shader, int x, int y, int z, int color1, int color2, int color3) {
+void PieceRenderer::render3c(Shader *shader, std::array<float, 3> pos, std::array<Color, 3> colors) {
     shader->use();
-    shader->setVec3("pieceColors[0]", Pieces::colors[color1]);
-    shader->setVec3("pieceColors[1]", Pieces::colors[color2]);
-    shader->setVec3("pieceColors[2]", Pieces::colors[color3]);
+    shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
+    shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
+    shader->setVec3("pieceColors[2]", Pieces::colors[colors[2]]);
     
     float scale = getSpacing() + 1.0f;
     mat4x4 model;
-    mat4x4_translate(model, x * scale, y * scale, z * scale);
+    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
     meshes[2]->renderFaces();
     shader->setInt("border", 1);
     meshes[2]->renderEdges();
+}
+
+void PieceRenderer::render4c(Shader *shader, std::array<float, 3> pos, std::array<Color, 4> colors, int orientation) {
+    shader->use();
+    shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
+    shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
+    shader->setVec3("pieceColors[2]", Pieces::colors[colors[2]]);
+    shader->setVec3("pieceColors[3]", Pieces::colors[colors[3]]);
+    
+    float scale = getSpacing() + 1.0f;
+    mat4x4 model;
+    mat4x4_translate(model, pos[0] * scale, pos[1] * scale, pos[2] * scale);
+    if (orientation > 3) {
+        orientation -= 4;
+        mat4x4_rotate(model, model, 1, 0, 0, M_PI);
+        mat4x4_rotate(model, model, 0, 1, 0, -M_PI_2 * (orientation - 1));
+    } else {
+        mat4x4_rotate(model, model, 0, 1, 0, M_PI_2 * orientation);
+    }
+    shader->setMat4("model", model);
+
+    shader->setInt("border", 0);
+    meshes[3]->renderFaces();
+    shader->setInt("border", 1);
+    meshes[3]->renderEdges();
 }
 
 void PieceRenderer::updateMouse(GLFWwindow* window, double dt) {

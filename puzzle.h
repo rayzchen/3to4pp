@@ -7,16 +7,16 @@
 #include <set>
 
 typedef enum : int {
-    WHITE, YELLOW, RED, ORANGE, GREEN, BLUE, PURPLE, PINK, UNUSED
+    WHITE, YELLOW, RED, ORANGE, PINK, PURPLE, GREEN, BLUE, UNUSED
 } Color;
 
 typedef enum : int {
-    UP, DOWN, RIGHT, LEFT, FRONT, BACK, IN, OUT
+    IN, OUT, RIGHT, LEFT, UP, DOWN, FRONT, BACK
 } CellLocation;
 
 typedef enum : int {
     XY, YX, XZ, ZX, YZ, ZY
-} Direction;
+} RotateDirection;
 
 typedef struct {
     // Unused depending on piece type
@@ -30,7 +30,7 @@ class Cell {
     public:
         Cell(Color center, std::vector<Piece*> v2c, std::vector<Piece*> v3c, std::vector<Piece*> v4c);
         // MUST be left or right cell
-        void rotateCell(Direction direction);
+        void rotateCell(RotateDirection direction);
     
     private:
         Color center;

@@ -75,26 +75,151 @@ void Window::run() {
         shader->setMat4("view", *camera->getViewMat());
         shader->setMat4("projection", *camera->getProjection());
 
-        renderer->render1c(shader, 0, 0, 0, 0);
-        renderer->render2c(shader, 1, 0, 0, 0, 2, RIGHT);
-        renderer->render2c(shader, -1, 0, 0, 0, 3, LEFT);
-        renderer->render2c(shader, 0, 0, 1, 0, 4, FRONT);
-        renderer->render2c(shader, 0, 0, -1, 0, 5, BACK);
-        renderer->render2c(shader, 0, -1, 0, 0, 6, DOWN);
-        renderer->render2c(shader, 0, 1, 0, 0, 7, UP);
-        renderer->render3c(shader, 1, 1, 0, 0, 7, 2);
-        renderer->render3c(shader, -1, 1, 0, 0, 7, 3);
-        renderer->render3c(shader, 1, -1, 0, 0, 6, 2);
-        renderer->render3c(shader, -1, -1, 0, 0, 6, 3);
-        renderer->render3c(shader, 0, 1, 1, 7, 0, 4);
-        renderer->render3c(shader, 0, 1, -1, 7, 0, 5);
-        renderer->render3c(shader, 0, -1, 1, 6, 0, 4);
-        renderer->render3c(shader, 0, -1, -1, 6, 0, 5);
-        renderer->render3c(shader, 1, 0, 1, 2, 4, 0);
-        renderer->render3c(shader, -1, 0, 1, 3, 4, 0);
-        renderer->render3c(shader, 1, 0, -1, 2, 5, 0);
-        renderer->render3c(shader, -1, 0, -1, 3, 5, 0);
-
+        // White cell
+        renderer->render1c(shader, {1.5, 0, 0}, WHITE);
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                std::array<float, 3> pos = {0, 0, 0};
+                pos[i] = j * -2 + 1;
+                int cellNumber = i * 2 + j + 2;
+                pos[0] += 1.5;
+                renderer->render2c(shader, pos, {WHITE, (Color)cellNumber}, (CellLocation)cellNumber);
+            }
+        }
+        
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 2; k++) {
+                    std::array<float, 3> pos = {0, 0, 0};
+                    pos[i] = k * -2 + 1;
+                    pos[(i + 1) % 3] = j * -2 + 1;
+                    std::array<Color, 3> colors = {WHITE, WHITE, WHITE};
+                    colors[(i + 1) % 3] = (Color)(4 + j + ((i<2) ? i : -1) * 2);
+                    colors[(i + 2) % 3] = (Color)(2 + k + i * 2);
+                    pos[0] += 1.5;
+                    renderer->render3c(shader, pos, colors);
+                }
+            }
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 2; k++) {
+                    std::array<float, 3> pos = {-2.0f * i + 1, -2.0f * j + 1, -2.0f * k + 1};
+                    std::array<Color, 4> colors = {WHITE, (Color)(4 + j), GREEN, GREEN};
+                    int orientation = (i + k) + 2*i*(1 - k);
+                    int flip = i * 5 + (-2 * i + 1) * ((j + k) % 2 + 2);
+                    colors[flip] = (Color)(2 + i);
+                    colors[5 - flip] = (Color)(6 + k);
+                    pos[0] += 1.5;
+                    renderer->render4c(shader, pos, colors, 4*j + orientation);
+                }
+            }
+        }
+        
+        // Yellow cell
+        renderer->render1c(shader, {-2.5, 0, 0}, YELLOW);
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                std::array<float, 3> pos = {0, 0, 0};
+                pos[i] = j * -2 + 1;
+                int cellNumber = i * 2 + j + 2;
+                int orientation = cellNumber;
+                if (i == 0) {
+                    // Flip red orange
+                    cellNumber = 5 - cellNumber;
+                }
+                pos[0] += -2.5;
+                renderer->render2c(shader, pos, {YELLOW, (Color)cellNumber}, (CellLocation)orientation);
+            }
+        }
+        
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 2; k++) {
+                    std::array<float, 3> pos = {0, 0, 0};
+                    pos[i] = k * -2 + 1;
+                    pos[(i + 1) % 3] = j * -2 + 1;
+                    std::array<Color, 3> colors = {YELLOW, YELLOW, YELLOW};
+                    colors[(i + 1) % 3] = (Color)(4 + j + ((i<2) ? i : -1) * 2);
+                    colors[(i + 2) % 3] = (Color)(2 + k + i * 2);
+                    pos[0] *= -1;
+                    pos[0] += -2.5;
+                    renderer->render3c(shader, pos, colors);
+                }
+            }
+        }
+        
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 2; k++) {
+                    std::array<float, 3> pos = {-2.0f * i + 1, -2.0f * j + 1, -2.0f * k + 1};
+                    std::array<Color, 4> colors = {YELLOW, (Color)(4 + j), GREEN, GREEN};
+                    int orientation = (i + k) + 2*i*(1 - k);
+                    int flip = i * 5 + (-2 * i + 1) * ((j + k) % 2 + 2);
+                    colors[flip] = (Color)(3 - i);
+                    colors[5 - flip] = (Color)(6 + k);
+                    pos[0] += -2.5;
+                    renderer->render4c(shader, pos, colors, 4*j + orientation);
+                }
+            }
+        }
+        
+        // Orange cell
+        renderer->render1c(shader, {-0.5, 0, 0}, ORANGE);
+        for (int i = 1; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                std::array<float, 3> pos = {-0.5, 0, 0};
+                pos[i] = j * -2 + 1;
+                int cellNumber = i * 2 + j + 2;
+                renderer->render2c(shader, pos, {ORANGE, (Color)cellNumber}, (CellLocation)cellNumber);
+            }
+        }
+        
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                int i = 1;
+                std::array<float, 3> pos = {-0.5, k * -2.0f + 1, j * -2.0f + 1};
+                std::array<Color, 3> colors = {(Color)(4 + k), ORANGE, (Color)(6 + j)};
+                renderer->render3c(shader, pos, colors);
+            }
+        }
+        
+        // Red cell
+        renderer->render1c(shader, {3.5, 0, 0}, RED);
+        for (int i = 1; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                std::array<float, 3> pos = {3.5, 0, 0};
+                pos[i] = j * -2 + 1;
+                int cellNumber = i * 2 + j + 2;
+                renderer->render2c(shader, pos, {RED, (Color)cellNumber}, (CellLocation)cellNumber);
+            }
+        }
+        
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                int i = 1;
+                std::array<float, 3> pos = {3.5, k * -2.0f + 1, j * -2.0f + 1};
+                std::array<Color, 3> colors = {(Color)(4 + k), RED, (Color)(6 + j)};
+                renderer->render3c(shader, pos, colors);
+            }
+        }
+        
+        // Exterior cells
+        renderer->render1c(shader, {-0.5, 2, 0}, PINK);
+        renderer->render1c(shader, {-0.5, -2, 0}, PURPLE);
+        renderer->render1c(shader, {-0.5, 0, 2}, GREEN);
+        renderer->render1c(shader, {-0.5, 0, -2}, BLUE);
+        
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                std::array<float, 3> pos = {-0.5, -2*j + 1, -4*i + 2};
+                std::array<Color, 2> colors = {(Color)(6 + i), (Color)j};
+                int orientation = 4 + j;
+                renderer->render2c(shader, pos, colors, (CellLocation)orientation);
+            }
+        }
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
