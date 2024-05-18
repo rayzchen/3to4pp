@@ -30,9 +30,9 @@ class Shader {
         unsigned int program;
 };
 
-class PieceRenderer {
+class PuzzleRenderer {
     public:
-        PieceRenderer();
+        PuzzleRenderer();
         float getSpacing();
         void setSpacing(float spacing);
         void render1c(Shader *shader, const std::array<float, 3> pos, Color color);

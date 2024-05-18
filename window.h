@@ -17,7 +17,7 @@ class Window {
         GLFWwindow *window;
         Shader *shader;
         Camera *camera;
-        PieceRenderer *renderer;
+        PuzzleRenderer *renderer;
         Puzzle *puzzle;
         double lastTime;
 };

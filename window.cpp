@@ -34,7 +34,7 @@ Window::Window() {
 
     shader = new Shader(Shaders::vertex, Shaders::fragment);
     camera = new Camera(M_PI_4, 1.6f, 0.02, 50);
-    renderer = new PieceRenderer();
+    renderer = new PuzzleRenderer();
     puzzle = new Puzzle();
 
     glfwSetWindowUserPointer(window, camera);

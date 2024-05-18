@@ -104,7 +104,7 @@ void Shader::setMat4(const char *loc, mat4x4 matrix) {
     glUniformMatrix4fv(shaderLocation, 1, GL_FALSE, matrix[0]);
 }
 
-PieceRenderer::PieceRenderer() {
+PuzzleRenderer::PuzzleRenderer() {
     spacing = 0.0f;
     sensitivity = 0.011f;
     meshes[0] = new PieceMesh(Pieces::mesh1c);
@@ -112,11 +112,11 @@ PieceRenderer::PieceRenderer() {
     meshes[2] = new PieceMesh(Pieces::mesh3c);
     meshes[3] = new PieceMesh(Pieces::mesh4c);
 }
-float PieceRenderer::getSpacing() {
+float PuzzleRenderer::getSpacing() {
     return spacing;
 }
 
-void PieceRenderer::setSpacing(float spacing) {
+void PuzzleRenderer::setSpacing(float spacing) {
     this->spacing = spacing;
     if (this->spacing < 0.0f) {
         this->spacing = 0.0f;
@@ -125,7 +125,7 @@ void PieceRenderer::setSpacing(float spacing) {
     }
 }
 
-void PieceRenderer::render1c(Shader *shader, const std::array<float, 3> pos, Color color) {
+void PuzzleRenderer::render1c(Shader *shader, const std::array<float, 3> pos, Color color) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[color]);
     
@@ -140,7 +140,7 @@ void PieceRenderer::render1c(Shader *shader, const std::array<float, 3> pos, Col
     meshes[0]->renderEdges();
 }
 
-void PieceRenderer::render2c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 2> colors, CellLocation dir) {
+void PuzzleRenderer::render2c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 2> colors, CellLocation dir) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
     shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
@@ -165,7 +165,7 @@ void PieceRenderer::render2c(Shader *shader, const std::array<float, 3> pos, con
     meshes[1]->renderEdges();
 }
 
-void PieceRenderer::render3c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 3> colors) {
+void PuzzleRenderer::render3c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 3> colors) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
     shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
@@ -182,7 +182,7 @@ void PieceRenderer::render3c(Shader *shader, const std::array<float, 3> pos, con
     meshes[2]->renderEdges();
 }
 
-void PieceRenderer::render4c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 4> colors, int orientation) {
+void PuzzleRenderer::render4c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 4> colors, int orientation) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
     shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
@@ -207,7 +207,7 @@ void PieceRenderer::render4c(Shader *shader, const std::array<float, 3> pos, con
     meshes[3]->renderEdges();
 }
 
-void PieceRenderer::updateMouse(GLFWwindow* window, double dt) {
+void PuzzleRenderer::updateMouse(GLFWwindow* window, double dt) {
     int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
     if (state == GLFW_PRESS) {
         double curX, curY;
@@ -221,7 +221,7 @@ void PieceRenderer::updateMouse(GLFWwindow* window, double dt) {
     }
 }
 
-void PieceRenderer::renderPuzzle(Shader *shader, Puzzle *puzzle) {
+void PuzzleRenderer::renderPuzzle(Shader *shader, Puzzle *puzzle) {
     renderCell(shader, puzzle->leftCell, -2.5f);
     renderCell(shader, puzzle->rightCell, 1.5f);
     renderSlice(shader, puzzle->innerSlice, -0.5f);
@@ -239,7 +239,7 @@ void PieceRenderer::renderPuzzle(Shader *shader, Puzzle *puzzle) {
     render2c(shader, {-0.5, -1, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
 }
 
-void PieceRenderer::renderCell(Shader *shader, std::array<std::array<std::array<Piece, 3>, 3>, 3> cell, float offset) {
+void PuzzleRenderer::renderCell(Shader *shader, std::array<std::array<std::array<Piece, 3>, 3>, 3> cell, float offset) {
     render1c(shader, {offset, 0, 0}, cell[1][1][1].a);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
@@ -275,7 +275,7 @@ void PieceRenderer::renderCell(Shader *shader, std::array<std::array<std::array<
     }
 }
 
-void PieceRenderer::renderSlice(Shader *shader, std::array<std::array<Piece, 3>, 3> slice, float offset) {
+void PuzzleRenderer::renderSlice(Shader *shader, std::array<std::array<Piece, 3>, 3> slice, float offset) {
     render1c(shader, {offset, 0, 0}, slice[1][1].a);
     for (int i = 1; i < 3; i++) {
         for (int j = 0; j < 2; j++) {

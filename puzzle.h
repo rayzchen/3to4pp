@@ -27,7 +27,7 @@ typedef struct {
 } Piece;
 
 class Puzzle {
-    friend class PieceRenderer;
+    friend class PuzzleRenderer;
     public:
         Puzzle(std::array<Color, 8> scheme = {PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE});
         void save(std::string filename);
