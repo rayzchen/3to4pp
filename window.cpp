@@ -39,6 +39,7 @@ Window::Window() {
 
     glfwSetWindowUserPointer(window, camera);
     glfwSetScrollCallback(window, &Camera::scrollCallback);
+    glfwSetFramebufferSizeCallback(window, &Camera::framebufferSizeCallback);
 }
 
 void Window::run() {

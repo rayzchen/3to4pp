@@ -2,8 +2,13 @@
 #include <linmath.h>
 #include "camera.h"
 
-Camera::Camera(float fov, float aspect, float near, float far) {
+Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
+    fov = a_fov;
+    aspect = a_aspect;
+    near = a_near;
+    far = a_far;
     mat4x4_perspective(projection, fov, aspect, near, far);
+    
     yaw = 0.0f;
     pitch = 0.0f;
     zoom = 10.0f;
@@ -78,6 +83,13 @@ void Camera::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
     float zoom = camera->getZoom();
     zoom -= yoffset * 0.5f;
     camera->setZoom(zoom);
+}
+
+void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    Camera *camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    glViewport(0, 0, width, height);
+    camera->aspect = (float)width / (float)height;
+    mat4x4_perspective(camera->projection, camera->fov, camera->aspect, camera->near, camera->far);
 }
 
 void Camera::updateMouse(GLFWwindow* window, double dt) {
