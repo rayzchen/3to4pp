@@ -11,10 +11,10 @@ Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
     
     yaw = 0.0f;
     pitch = 0.0f;
-    zoom = 10.0f;
+    zoom = 15.0f;
     recalculate = true;
 
-    sensitivity = 0.4f;
+    sensitivity = 0.6f;
     yawVel = 0.0f;
     pitchVel = 0.0f;
 }
@@ -67,10 +67,10 @@ float Camera::getZoom() {
 
 void Camera::setZoom(float zoom) {
     this->zoom = zoom;
-    if (this->zoom > 15.0f) {
-        this->zoom = 15.0f;
-    } else if (this->zoom < 3.0f) {
-        this->zoom = 3.0f;
+    if (this->zoom > 20.0f) {
+        this->zoom = 20.0f;
+    } else if (this->zoom < 5.0f) {
+        this->zoom = 5.0f;
     }
     recalculate = true;
 }

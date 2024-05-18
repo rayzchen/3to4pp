@@ -40,8 +40,8 @@ class PuzzleRenderer {
         void render3c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 3> colors);
         void render4c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 4> colors, int orientation);
         void renderPuzzle(Shader *shader, Puzzle *puzzle);
-        void renderCell(Shader *shader, std::array<std::array<std::array<Piece, 3>, 3>, 3> cell, float offset);
-        void renderSlice(Shader *shader, std::array<std::array<Piece, 3>, 3> slice, float offset);
+        void renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset);
+        void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset);
         
         void updateMouse(GLFWwindow* window, double dt);
     

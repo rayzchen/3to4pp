@@ -239,7 +239,7 @@ void PuzzleRenderer::renderPuzzle(Shader *shader, Puzzle *puzzle) {
     render2c(shader, {-0.5, -1, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
 }
 
-void PuzzleRenderer::renderCell(Shader *shader, std::array<std::array<std::array<Piece, 3>, 3>, 3> cell, float offset) {
+void PuzzleRenderer::renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset) {
     render1c(shader, {offset, 0, 0}, cell[1][1][1].a);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
@@ -275,7 +275,7 @@ void PuzzleRenderer::renderCell(Shader *shader, std::array<std::array<std::array
     }
 }
 
-void PuzzleRenderer::renderSlice(Shader *shader, std::array<std::array<Piece, 3>, 3> slice, float offset) {
+void PuzzleRenderer::renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset) {
     render1c(shader, {offset, 0, 0}, slice[1][1].a);
     for (int i = 1; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
