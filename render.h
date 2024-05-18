@@ -37,6 +37,7 @@ class PieceRenderer {
         void setSpacing(float spacing);
         void render1c(Shader *shader, int x, int y, int z, int color);
         void render2c(Shader *shader, int x, int y, int z, int color1, int color2, CellLocation dir);
+        void render3c(Shader *shader, int x, int y, int z, int color1, int color2, int color3);
         
         void updateMouse(GLFWwindow* window, double dt);
     

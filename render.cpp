@@ -108,6 +108,7 @@ PieceRenderer::PieceRenderer() {
     sensitivity = 0.011f;
     meshes[0] = new PieceMesh(Pieces::mesh1c);
     meshes[1] = new PieceMesh(Pieces::mesh2c);
+    meshes[2] = new PieceMesh(Pieces::mesh3c);
 }
 float PieceRenderer::getSpacing() {
     return spacing;
@@ -160,6 +161,23 @@ void PieceRenderer::render2c(Shader *shader, int x, int y, int z, int color1, in
     meshes[1]->renderFaces();
     shader->setInt("border", 1);
     meshes[1]->renderEdges();
+}
+
+void PieceRenderer::render3c(Shader *shader, int x, int y, int z, int color1, int color2, int color3) {
+    shader->use();
+    shader->setVec3("pieceColors[0]", Pieces::colors[color1]);
+    shader->setVec3("pieceColors[1]", Pieces::colors[color2]);
+    shader->setVec3("pieceColors[2]", Pieces::colors[color3]);
+    
+    float scale = getSpacing() + 1.0f;
+    mat4x4 model;
+    mat4x4_translate(model, x * scale, y * scale, z * scale);
+    shader->setMat4("model", model);
+
+    shader->setInt("border", 0);
+    meshes[2]->renderFaces();
+    shader->setInt("border", 1);
+    meshes[2]->renderEdges();
 }
 
 void PieceRenderer::updateMouse(GLFWwindow* window, double dt) {

@@ -82,6 +82,18 @@ void Window::run() {
         renderer->render2c(shader, 0, 0, -1, 0, 5, BACK);
         renderer->render2c(shader, 0, -1, 0, 0, 6, DOWN);
         renderer->render2c(shader, 0, 1, 0, 0, 7, UP);
+        renderer->render3c(shader, 1, 1, 0, 0, 7, 2);
+        renderer->render3c(shader, -1, 1, 0, 0, 7, 3);
+        renderer->render3c(shader, 1, -1, 0, 0, 6, 2);
+        renderer->render3c(shader, -1, -1, 0, 0, 6, 3);
+        renderer->render3c(shader, 0, 1, 1, 7, 0, 4);
+        renderer->render3c(shader, 0, 1, -1, 7, 0, 5);
+        renderer->render3c(shader, 0, -1, 1, 6, 0, 4);
+        renderer->render3c(shader, 0, -1, -1, 6, 0, 5);
+        renderer->render3c(shader, 1, 0, 1, 2, 4, 0);
+        renderer->render3c(shader, -1, 0, 1, 3, 4, 0);
+        renderer->render3c(shader, 1, 0, -1, 2, 5, 0);
+        renderer->render3c(shader, -1, 0, -1, 3, 5, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
