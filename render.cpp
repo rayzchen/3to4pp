@@ -125,7 +125,7 @@ void PieceRenderer::setSpacing(float spacing) {
     }
 }
 
-void PieceRenderer::render1c(Shader *shader, std::array<float, 3> pos, Color color) {
+void PieceRenderer::render1c(Shader *shader, const std::array<float, 3> pos, Color color) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[color]);
     
@@ -140,7 +140,7 @@ void PieceRenderer::render1c(Shader *shader, std::array<float, 3> pos, Color col
     meshes[0]->renderEdges();
 }
 
-void PieceRenderer::render2c(Shader *shader, std::array<float, 3> pos, std::array<Color, 2> colors, CellLocation dir) {
+void PieceRenderer::render2c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 2> colors, CellLocation dir) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
     shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
@@ -165,7 +165,7 @@ void PieceRenderer::render2c(Shader *shader, std::array<float, 3> pos, std::arra
     meshes[1]->renderEdges();
 }
 
-void PieceRenderer::render3c(Shader *shader, std::array<float, 3> pos, std::array<Color, 3> colors) {
+void PieceRenderer::render3c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 3> colors) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
     shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
@@ -182,7 +182,7 @@ void PieceRenderer::render3c(Shader *shader, std::array<float, 3> pos, std::arra
     meshes[2]->renderEdges();
 }
 
-void PieceRenderer::render4c(Shader *shader, std::array<float, 3> pos, std::array<Color, 4> colors, int orientation) {
+void PieceRenderer::render4c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 4> colors, int orientation) {
     shader->use();
     shader->setVec3("pieceColors[0]", Pieces::colors[colors[0]]);
     shader->setVec3("pieceColors[1]", Pieces::colors[colors[1]]);
@@ -218,5 +218,82 @@ void PieceRenderer::updateMouse(GLFWwindow* window, double dt) {
         lastY = curY;
     } else {
         lastY = -1.0f;
+    }
+}
+
+void PieceRenderer::renderPuzzle(Shader *shader, Puzzle *puzzle) {
+    renderCell(shader, puzzle->leftCell, -2.5f);
+    renderCell(shader, puzzle->rightCell, 1.5f);
+    renderSlice(shader, puzzle->innerSlice, -0.5f);
+    renderSlice(shader, puzzle->outerSlice, 3.5f);
+    
+    render1c(shader, {-0.5, 2, 0}, puzzle->topCell.a);
+    render1c(shader, {-0.5, -2, 0}, puzzle->bottomCell.a);
+
+    render2c(shader, {-0.5, 1, 2}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
+    render1c(shader, {-0.5, 0, 2}, puzzle->frontCell[1].a);
+    render2c(shader, {-0.5, -1, 2}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
+
+    render2c(shader, {-0.5, 1, -2}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
+    render1c(shader, {-0.5, 0, -2}, puzzle->backCell[1].a);
+    render2c(shader, {-0.5, -1, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
+}
+
+void PieceRenderer::renderCell(Shader *shader, std::array<std::array<std::array<Piece, 3>, 3>, 3> cell, float offset) {
+    render1c(shader, {offset, 0, 0}, cell[1][1][1].a);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            std::array<int, 3> pos = {0, 0, 0};
+            pos[i] += j * -2 + 1;
+            Piece piece = cell[pos[0] + 1][pos[1] + 1][pos[2] + 1];
+            CellLocation orientation = (CellLocation)(i * 2 + j + 2);
+            render2c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b}, orientation);
+        }
+    }
+    
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                std::array<int, 3> pos = {0, 0, 0};
+                pos[i] = k * -2 + 1;
+                pos[(i + 1) % 3] = j * -2 + 1;
+                Piece piece = cell[pos[0] + 1][pos[1] + 1][pos[2] + 1];
+                render3c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c});
+            }
+        }
+    }
+    
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                std::array<int, 3> pos = {i * -2 + 1, j * -2 + 1, k * -2 + 1};
+                int orientation = (i + k) + 2*i*(1 - k);
+                Piece piece = cell[pos[0] + 1][pos[1] + 1][pos[2] + 1];
+                render4c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c, piece.d}, 4*j + orientation);
+            }
+        }
+    }
+}
+
+void PieceRenderer::renderSlice(Shader *shader, std::array<std::array<Piece, 3>, 3> slice, float offset) {
+    render1c(shader, {offset, 0, 0}, slice[1][1].a);
+    for (int i = 1; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            std::array<int, 3> pos = {0, 0, 0};
+            pos[i] += j * -2 + 1;
+            Piece piece = slice[pos[1] + 1][pos[2] + 1];
+            CellLocation orientation = (CellLocation)(i * 2 + j + 2);
+            render2c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b}, orientation);
+        }
+    }
+    
+    for (int j = 0; j < 2; j++) {
+        for (int k = 0; k < 2; k++) {
+            std::array<int, 3> pos = {0, 0, 0};
+            pos[1] = k * -2 + 1;
+            pos[2] = j * -2 + 1;
+            Piece piece = slice[pos[1] + 1][pos[2] + 1];
+            render3c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c});
+        }
     }
 }

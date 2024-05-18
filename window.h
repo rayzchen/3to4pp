@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "render.h"
 #include "camera.h"
+#include "puzzle.h"
 
 class Window {
     public:
@@ -17,6 +18,7 @@ class Window {
         Shader *shader;
         Camera *camera;
         PieceRenderer *renderer;
+        Puzzle *puzzle;
         double lastTime;
 };
 

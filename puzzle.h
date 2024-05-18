@@ -7,7 +7,7 @@
 #include <set>
 
 typedef enum : int {
-    WHITE, YELLOW, RED, ORANGE, PINK, PURPLE, GREEN, BLUE, UNUSED
+    PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE, UNUSED
 } Color;
 
 typedef enum : int {
@@ -26,40 +26,29 @@ typedef struct {
     Color d;
 } Piece;
 
-class Cell {
-    public:
-        Cell(Color center, std::vector<Piece*> v2c, std::vector<Piece*> v3c, std::vector<Piece*> v4c);
-        // MUST be left or right cell
-        void rotateCell(RotateDirection direction);
-    
-    private:
-        Color center;
-        // U F R B L D
-        Piece *pieces2c[6];
-        // UF UR UB UL RF RB LB LF DF DR DB DL
-        Piece *pieces3c[12];
-        // UFR UBR UBL UFL DFR DBR DBL DFL
-        Piece *pieces4c[8];
-        
-        // Specify slice by UFR
-        void rotateSlice(Color face, int turns);
-        void cycleEdges(int a, int b, int c, int d);
-        void cycleCorners(int a, int b, int c, int d);
-        void flipEdge(int edge);
-        void cycleCorner(int corner, int a, int b, int c);
-};
-
 class Puzzle {
+    friend class PieceRenderer;
     public:
-        Puzzle();
+        Puzzle(std::array<Color, 8> scheme = {PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE});
         void save(std::string filename);
         static Puzzle load();
 
     private:
-        // Cell cells[8];
-        // 8C2 + 8C3 + 8C4 = 154 pieces
-        std::vector<Piece> pieces;
-        std::map<std::set<Color>, Piece*> piecemap;
+        // [x][y][z]
+        std::array<std::array<std::array<Piece, 3>, 3>, 3> leftCell;
+        // [x][y][z]
+        std::array<std::array<std::array<Piece, 3>, 3>, 3> rightCell;
+        // [y][z]
+        std::array<std::array<Piece, 3>, 3> innerSlice;
+        // [y][z]
+        std::array<std::array<Piece, 3>, 3> outerSlice;
+        Piece topCell;
+        Piece bottomCell;
+        std::array<Piece, 3> frontCell;
+        std::array<Piece, 3> backCell;
+        
+        void initCell(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, Color center, const std::array<Color, 6> faces);
+        void initSlice(std::array<std::array<Piece, 3>, 3>& slice, Color center, const std::array<Color, 4> faces);
 };
 
 #endif // puzzle.h
