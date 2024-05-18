@@ -36,6 +36,7 @@ Window::Window() {
     camera = new Camera(M_PI_4, 1.6f, 0.02, 50);
     renderer = new PuzzleRenderer();
     puzzle = new Puzzle();
+    puzzle->rotateCell(LEFT, YX);
 
     glfwSetWindowUserPointer(window, camera);
     glfwSetScrollCallback(window, &Camera::scrollCallback);
