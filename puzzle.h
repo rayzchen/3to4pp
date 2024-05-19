@@ -15,7 +15,7 @@ typedef enum : int {
 } CellLocation;
 
 typedef enum : int {
-    XY, YX, XZ, ZX, YZ, ZY
+    ZY, YZ, XZ, ZX, YX, XY
 } RotateDirection;
 
 typedef struct {
@@ -44,8 +44,10 @@ class Puzzle {
         std::array<std::array<Piece, 3>, 3> innerSlice;
         // [y][z]
         std::array<std::array<Piece, 3>, 3> outerSlice;
-        // Measured from innerSlice
+        // Measured from innerSlice, if 2 or -2 must match outerSlicePos
         int middleSlicePos;
+        // Only 1 or -1
+        int outerSlicePos;
         Piece topCell;
         Piece bottomCell;
         std::array<Piece, 3> frontCell;

@@ -11,7 +11,7 @@ Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
     
     yaw = 0.0f;
     pitch = 0.0f;
-    zoom = 15.0f;
+    zoom = 10.0f;
     recalculate = true;
 
     sensitivity = 0.6f;
@@ -67,8 +67,8 @@ float Camera::getZoom() {
 
 void Camera::setZoom(float zoom) {
     this->zoom = zoom;
-    if (this->zoom > 20.0f) {
-        this->zoom = 20.0f;
+    if (this->zoom > 25.0f) {
+        this->zoom = 25.0f;
     } else if (this->zoom < 5.0f) {
         this->zoom = 5.0f;
     }
@@ -95,8 +95,8 @@ void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
 void Camera::updateMouse(GLFWwindow* window, double dt) {
     yawVel *= 0.9f;
     pitchVel *= 0.9f;
-    setYaw(yaw + yawVel * dt);
-    setPitch(pitch + pitchVel * dt);
+    setYaw(yaw - yawVel * dt);
+    setPitch(pitch - pitchVel * dt);
 
     int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     if (state == GLFW_PRESS) {

@@ -34,9 +34,8 @@ Window::Window() {
 
     shader = new Shader(Shaders::vertex, Shaders::fragment);
     camera = new Camera(M_PI_4, 1.6f, 0.02, 50);
-    renderer = new PuzzleRenderer();
     puzzle = new Puzzle();
-    puzzle->rotateCell(LEFT, YX);
+    renderer = new PuzzleRenderer(puzzle);
 
     glfwSetWindowUserPointer(window, camera);
     glfwSetScrollCallback(window, &Camera::scrollCallback);
@@ -61,18 +60,18 @@ void Window::run() {
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window)) {
         double tick = glfwGetTime();
-        double dt = lastTime - tick;
+        double dt = tick - lastTime;
         lastTime = tick;
         camera->updateMouse(window, dt);
         renderer->updateMouse(window, dt);
-        renderer->updateAnimations(dt);
+        renderer->updateAnimations(window, dt);
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shader->use();
         shader->setMat4("view", *camera->getViewMat());
         shader->setMat4("projection", *camera->getProjection());
-        renderer->renderPuzzle(shader, puzzle);
+        renderer->renderPuzzle(shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

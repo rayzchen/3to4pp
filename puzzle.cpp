@@ -8,6 +8,7 @@ Puzzle::Puzzle(std::array<Color, 8> scheme) {
     initSlice(outerSlice, PINK, {WHITE, YELLOW, GREEN, BLUE});
 
     middleSlicePos = 0;
+    outerSlicePos = 1;
     topCell = {WHITE, UNUSED, UNUSED, UNUSED};
     bottomCell = {YELLOW, UNUSED, UNUSED, UNUSED};
     frontCell[0] = {GREEN, YELLOW, UNUSED, UNUSED};
