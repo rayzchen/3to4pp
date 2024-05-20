@@ -657,7 +657,7 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
                 case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
                 case ROTATE: puzzle->rotatePuzzle(entry.direction); break;
                 case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
-                case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.direction); break;
+                case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.location); break;
             }
 
             animationProgress = 0.0f;
