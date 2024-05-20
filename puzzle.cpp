@@ -9,6 +9,7 @@ Puzzle::Puzzle(std::array<Color, 8> scheme) {
 
     middleSlicePos = 0;
     outerSlicePos = 1;
+    middleSliceDir = FRONT;
     topCell = {WHITE, UNUSED, UNUSED, UNUSED};
     bottomCell = {YELLOW, UNUSED, UNUSED, UNUSED};
     frontCell[0] = {GREEN, YELLOW, UNUSED, UNUSED};
@@ -19,7 +20,7 @@ Puzzle::Puzzle(std::array<Color, 8> scheme) {
     backCell[2] = {BLUE, WHITE, UNUSED, UNUSED};
 }
 
-void Puzzle::initCell(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, Color center, std::array<Color, 6> faces) {
+void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) {
     cell[1][1][1] = {center, UNUSED, UNUSED, UNUSED};
     
     for (int i = 0; i < 3; i++) {
@@ -59,7 +60,7 @@ void Puzzle::initCell(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, 
     }
 }
 
-void Puzzle::initSlice(std::array<std::array<Piece, 3>, 3>& slice, Color center, std::array<Color, 4> faces) {
+void Puzzle::initSlice(SliceData& slice, Color center, std::array<Color, 4> faces) {
     slice[1][1] = {center, UNUSED, UNUSED, UNUSED};
     
     for (int i = 1; i < 3; i++) {
@@ -131,13 +132,13 @@ void Puzzle::rotateCell(CellLocation cell, RotateDirection direction) {
     }
 }
 
-void Puzzle::rotateCellX(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, RotateDirection direction) {
+void Puzzle::rotateCellX(CellData& cell, RotateDirection direction) {
     rotateSlice(cell[0], direction, 0);
     rotateSlice(cell[1], direction, 1);
     rotateSlice(cell[2], direction, 2);
 }
 
-void Puzzle::rotateSlice(std::array<std::array<Piece, 3>, 3>& slice, RotateDirection direction, int sliceNum) {
+void Puzzle::rotateSlice(SliceData& slice, RotateDirection direction, int sliceNum) {
     int front = (direction == YZ) ? 2 : 0;
     int back = 2 - front;
     Piece temp;
@@ -190,7 +191,7 @@ void Puzzle::rotateSlice(std::array<std::array<Piece, 3>, 3>& slice, RotateDirec
     }
 }
 
-void Puzzle::rotateCellY(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, RotateDirection direction) {
+void Puzzle::rotateCellY(CellData& cell, RotateDirection direction) {
     int right = (direction == XZ) ? 2 : 0;
     int left = 2 - right;
     Piece temp;
@@ -225,7 +226,7 @@ void Puzzle::rotateCellY(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cel
     }
 }
 
-void Puzzle::rotateCellZ(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, RotateDirection direction) {
+void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
     int top = (direction == XY) ? 2 : 0;
     int bottom = 2 - top;
     Piece temp;
@@ -272,4 +273,17 @@ void Puzzle::rotateCellZ(std::array<std::array<std::array<Piece, 3>, 3>, 3>& cel
             }
         }
     }
+}
+
+bool Puzzle::canGyroMiddle(int direction) {
+    if (outerSlicePos == 1) {
+        return middleSlicePos + direction <= 2 && middleSlicePos + direction >= -1;
+    } else {
+        return middleSlicePos + direction <= 1 && middleSlicePos + direction >= -2;
+    }
+}
+
+void Puzzle::gyroOuterSlice() {
+    if (outerSlicePos * 2 == middleSlicePos) middleSlicePos *= -1;
+    outerSlicePos *= -1;
 }

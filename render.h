@@ -32,7 +32,7 @@ class Shader {
 };
 
 typedef enum {
-    GYRO, TURN, ROTATE, GYRO_OUTER
+    GYRO, TURN, ROTATE, GYRO_OUTER, GYRO_MIDDLE
 } MoveType;
 
 struct MoveEntry {
@@ -40,7 +40,7 @@ struct MoveEntry {
     float animLength;
     CellLocation cell; // for GYRO, TURN
     RotateDirection direction; // for TURN
-    int location; // for slice gyros
+    int location; // for slice gyros (-1/0/1 for middle gyros)
 };
 
 class PuzzleRenderer {
@@ -55,15 +55,13 @@ class PuzzleRenderer {
         void renderPuzzle(Shader *shader);
         void renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset, std::array<int, 3> sliceFilter = {-1, -1, -1});
         void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset);
-        void renderMiddleSlice(Shader *shader, bool addOffset = true);
+        void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ = 0.0f);
         
         void updateMouse(GLFWwindow* window, double dt);
         void updateAnimations(GLFWwindow *window, double dt);
-        void renderNoAnimation(Shader *shader);
-        void renderLeftAnimation(Shader *shader, RotateDirection direction);
-        void renderRightAnimation(Shader *shader, RotateDirection direction);
-        void renderOuterGyroAnimation(Shader *Shader, int location);
-    
+        bool checkMiddleGyro(GLFWwindow* window);
+        bool checkDirectionalMove(GLFWwindow* window);
+        
     private:
         Puzzle *puzzle;
         PieceMesh *meshes[4];
@@ -75,6 +73,14 @@ class PuzzleRenderer {
         std::queue<MoveEntry> pendingMoves;
         bool animating;
         float animationProgress;
+        
+        void renderNoAnimation(Shader *shader);
+        void renderLeftAnimation(Shader *shader, RotateDirection direction);
+        void renderRightAnimation(Shader *shader, RotateDirection direction);
+        void renderOuterGyroAnimation(Shader *Shader, int location);
+        void renderMiddleGyroAnimation(Shader *Shader, int direction);
+        void renderMiddleGyroPosAnimation(Shader *Shader, int direction);
+        void renderMiddleGyroDirAnimation(Shader *Shader);
 };
 
 #endif // render.h

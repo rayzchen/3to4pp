@@ -318,18 +318,24 @@ void PuzzleRenderer::renderSlice(Shader *shader, const std::array<std::array<Pie
     }
 }
 
-void PuzzleRenderer::renderMiddleSlice(Shader *shader, bool addOffset) {
-    float offset = (addOffset ? -0.5 * puzzle->outerSlicePos : 0.0f) + puzzle->middleSlicePos;
-    render1c(shader, {offset, 2, 0}, puzzle->topCell.a);
-    render1c(shader, {offset, -2, 0}, puzzle->bottomCell.a);
+void PuzzleRenderer::renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ) {
+    float offset = (addOffsetX ? -0.5 * puzzle->outerSlicePos : 0.0f) + 2 * puzzle->middleSlicePos;
+    render1c(shader, {offset, 2 + offsetYZ, 0}, puzzle->topCell.a);
+    render1c(shader, {offset, -2 - offsetYZ, 0}, puzzle->bottomCell.a);
+    render1c(shader, {offset, 0, 2 + offsetYZ}, puzzle->frontCell[1].a);
+    render1c(shader, {offset, 0, -2 - offsetYZ}, puzzle->backCell[1].a);
 
-    render2c(shader, {offset, 1, 2}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
-    render1c(shader, {offset, 0, 2}, puzzle->frontCell[1].a);
-    render2c(shader, {offset, -1, 2}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
-
-    render2c(shader, {offset, 1, -2}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
-    render1c(shader, {offset, 0, -2}, puzzle->backCell[1].a);
-    render2c(shader, {offset, -1, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
+    if (puzzle->middleSliceDir == FRONT) {
+        render2c(shader, {offset, 1, 2 + offsetYZ}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
+        render2c(shader, {offset, -1, 2 + offsetYZ}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
+        render2c(shader, {offset, 1, -2 - offsetYZ}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
+        render2c(shader, {offset, -1, -2 - offsetYZ}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
+    } else {
+        render2c(shader, {offset, 2 + offsetYZ, 1}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, BACK);
+        render2c(shader, {offset, -2 - offsetYZ, 1}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, BACK);
+        render2c(shader, {offset, 2 + offsetYZ, -1}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, FRONT);
+        render2c(shader, {offset, -2 - offsetYZ, -1}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, FRONT);
+    }
 }
 
 void PuzzleRenderer::renderPuzzle(Shader *shader) {
@@ -343,6 +349,8 @@ void PuzzleRenderer::renderPuzzle(Shader *shader) {
         }
     } else if (pendingMoves.front().type == GYRO_OUTER) {
         renderOuterGyroAnimation(shader, pendingMoves.front().location);
+    } else if (pendingMoves.front().type == GYRO_MIDDLE) {
+        renderMiddleGyroAnimation(shader, pendingMoves.front().location);
     }
 }
 
@@ -353,7 +361,7 @@ void PuzzleRenderer::renderNoAnimation(Shader *shader) {
     renderCell(shader, puzzle->leftCell, -2.0f + offset);
     renderCell(shader, puzzle->rightCell, 2.0f + offset);
     renderSlice(shader, puzzle->innerSlice, offset);
-    renderMiddleSlice(shader);
+    renderMiddleSlice(shader, true);
 }
 
 void PuzzleRenderer::renderLeftAnimation(Shader *shader, RotateDirection direction) {
@@ -366,11 +374,14 @@ void PuzzleRenderer::renderLeftAnimation(Shader *shader, RotateDirection directi
         mat4x4_rotate(model, model, axis[0], axis[1], axis[2], M_PI_2 * animationProgress);
         renderCell(shader, puzzle->leftCell, 0.0f);
         
+        mat4x4_identity(model);
+        if (puzzle->middleSlicePos == -1) renderMiddleSlice(shader, true, -offset);
+        
         mat4x4_translate(model, -offset, 0, 0);
         renderCell(shader, puzzle->rightCell, 1.5f);
         renderSlice(shader, puzzle->innerSlice, -0.5f);
         renderSlice(shader, puzzle->outerSlice, 3.5f);
-        renderMiddleSlice(shader);
+        if (puzzle->middleSlicePos >= 0) renderMiddleSlice(shader, true);
     } else {
         float offset = 4 * animationProgress * (animationProgress - 1.0f);
         std::array<float, 3> axis = {0, 0, 0};
@@ -380,15 +391,17 @@ void PuzzleRenderer::renderLeftAnimation(Shader *shader, RotateDirection directi
         mat4x4_rotate(model, model, axis[0], axis[1], axis[2], M_PI_2 * animationProgress);
         renderCell(shader, puzzle->leftCell, 0.0f);
         
+        mat4x4_identity(model);
+        if (puzzle->middleSlicePos == -1) renderMiddleSlice(shader, true, -offset);
+        
         mat4x4_translate(model, offset, 0, 0);
         renderSlice(shader, puzzle->outerSlice, -3.5f);
-        if (puzzle->middleSlicePos == -2) renderMiddleSlice(shader);
-        // if (puzzle->middleSlicePos == -1) renderMiddleSlice(shader, offset);
+        if (puzzle->middleSlicePos == -2) renderMiddleSlice(shader, true);
         
         mat4x4_translate(model, -offset, 0, 0);
         renderCell(shader, puzzle->rightCell, 2.5f);
         renderSlice(shader, puzzle->innerSlice, 0.5f);
-        if (puzzle->middleSlicePos >= 0) renderMiddleSlice(shader);
+        if (puzzle->middleSlicePos >= 0) renderMiddleSlice(shader, true);
     }
 }
 
@@ -402,11 +415,14 @@ void PuzzleRenderer::renderRightAnimation(Shader *shader, RotateDirection direct
         mat4x4_rotate(model, model, axis[0], axis[1], axis[2], M_PI_2 * animationProgress);
         renderCell(shader, puzzle->rightCell, 0.0f);
         
+        mat4x4_identity(model);
+        if (puzzle->middleSlicePos == 1) renderMiddleSlice(shader, true, -offset);
+        
         mat4x4_translate(model, offset, 0, 0);
         renderCell(shader, puzzle->leftCell, -1.5f);
         renderSlice(shader, puzzle->innerSlice, 0.5f);
         renderSlice(shader, puzzle->outerSlice, -3.5f);
-        renderMiddleSlice(shader);
+        if (puzzle->middleSlicePos <= 0) renderMiddleSlice(shader, true, -offset);
     } else {
         float offset = 4 * animationProgress * (animationProgress - 1.0f);
         std::array<float, 3> axis = {0, 0, 0};
@@ -416,15 +432,17 @@ void PuzzleRenderer::renderRightAnimation(Shader *shader, RotateDirection direct
         mat4x4_rotate(model, model, axis[0], axis[1], axis[2], M_PI_2 * animationProgress);
         renderCell(shader, puzzle->rightCell, 0.0f);
         
+        mat4x4_identity(model);
+        if (puzzle->middleSlicePos == 1) renderMiddleSlice(shader, true, -offset);
+        
         mat4x4_translate(model, -offset, 0, 0);
         renderSlice(shader, puzzle->outerSlice, 3.5f);
-        if (puzzle->middleSlicePos == -2) renderMiddleSlice(shader);
-        // if (puzzle->middleSlicePos == -1) renderMiddleSlice(shader, offset);
+        if (puzzle->middleSlicePos == 2) renderMiddleSlice(shader, true);
         
         mat4x4_translate(model, offset, 0, 0);
         renderCell(shader, puzzle->leftCell, -2.5f);
         renderSlice(shader, puzzle->innerSlice, -0.5f);
-        if (puzzle->middleSlicePos >= 0) renderMiddleSlice(shader);
+        if (puzzle->middleSlicePos <= 0) renderMiddleSlice(shader, true);
     }
 }
 
@@ -448,12 +466,119 @@ void PuzzleRenderer::renderOuterGyroAnimation(Shader *shader, int location) {
     }
     mat4x4_translate(model, slicePosX, slicePosY, 0);
     renderSlice(shader, puzzle->outerSlice, 0.0f);
+    // Undo X offset made by renderMiddleSlice
+    mat4x4_translate_in_place(model, -2 * puzzle->middleSlicePos, 0, 0);
+    if (puzzle->outerSlicePos * 2 == puzzle->middleSlicePos) renderMiddleSlice(shader, false);
     
     mat4x4_translate(model, mainOffsetX, mainOffsetY, 0);
     renderCell(shader, puzzle->leftCell, -2.0f);
     renderCell(shader, puzzle->rightCell, 2.0f);
     renderSlice(shader, puzzle->innerSlice, 0.0f);
-    renderMiddleSlice(shader, false);
+    if (puzzle->outerSlicePos * 2 != puzzle->middleSlicePos) renderMiddleSlice(shader, false);
+}
+
+void PuzzleRenderer::renderMiddleGyroAnimation(Shader *shader, int direction) {
+    if (direction == 0) {
+        renderMiddleGyroDirAnimation(shader);
+    } else {
+        renderMiddleGyroPosAnimation(shader, direction);
+    }
+}
+
+void PuzzleRenderer::renderMiddleGyroDirAnimation(Shader *shader) {
+    float offset = puzzle->outerSlicePos * -0.5f;
+    mat4x4_identity(model);
+    renderSlice(shader, puzzle->outerSlice, 3.5f * puzzle->outerSlicePos);
+    renderCell(shader, puzzle->leftCell, -2.0f + offset);
+    renderCell(shader, puzzle->rightCell, 2.0f + offset);
+    renderSlice(shader, puzzle->innerSlice, offset);
+    
+    offset += 2 * puzzle->middleSlicePos;
+    render1c(shader, {offset, 2, 0}, puzzle->topCell.a);
+    render1c(shader, {offset, -2, 0}, puzzle->bottomCell.a);
+    render1c(shader, {offset, 0, 2}, puzzle->frontCell[1].a);
+    render1c(shader, {offset, 0, -2}, puzzle->backCell[1].a);
+    
+    float parity = (puzzle->middleSliceDir == UP) ? 1.0f : -1.0f;
+    CellLocation target1 = (puzzle->middleSliceDir == UP) ? BACK : UP;
+    CellLocation target2 = (puzzle->middleSliceDir == UP) ? FRONT : DOWN;
+    if (animationProgress < 0.5f) {
+        float arcY = M_SQRT1_2 * sin(parity * M_PI / 4 + M_PI * animationProgress);
+        float arcZ = M_SQRT1_2 * sin(-parity * M_PI / 4 + M_PI * animationProgress);
+        mat4x4_translate(model, 0, 1.5 + arcY, 1.5 + arcZ);
+        mat4x4_rotate(model, model, 1, 0, 0, parity * M_PI * animationProgress);
+        render2c(shader, {offset, 0, 0}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, target1);
+        
+        mat4x4_translate(model, 0, 1.5 + arcY, -1.5 - arcZ);
+        mat4x4_rotate(model, model, 1, 0, 0, -parity * M_PI * animationProgress);
+        render2c(shader, {offset, 0, 0}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, target2);
+        
+        mat4x4_translate(model, 0, -1.5 - arcY, 1.5 + arcZ);
+        mat4x4_rotate(model, model, 1, 0, 0, -parity * M_PI * animationProgress);
+        render2c(shader, {offset, 0, 0}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, target1);
+        
+        mat4x4_translate(model, 0, -1.5 - arcY, -1.5 - arcZ);
+        mat4x4_rotate(model, model, 1, 0, 0, parity * M_PI * animationProgress);
+        render2c(shader, {offset, 0, 0}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, target2);
+    } else {
+        float glide = -4 * animationProgress * (animationProgress - 1.0f);
+        if (puzzle->middleSliceDir == UP) {
+            render2c(shader, {offset, 1 + glide, 2}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
+            render2c(shader, {offset, 1 + glide, -2}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
+            render2c(shader, {offset, -1 - glide, 2}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
+            render2c(shader, {offset, -1 - glide, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
+        } else {
+            render2c(shader, {offset, 2, 1 + glide}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, BACK);
+            render2c(shader, {offset, -2, 1 + glide}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, BACK);
+            render2c(shader, {offset, 2, -1 - glide}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, FRONT);
+            render2c(shader, {offset, -2, -1 - glide}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, FRONT);
+        }
+    }
+}
+
+void PuzzleRenderer::renderMiddleGyroPosAnimation(Shader *shader, int direction) {
+    float offset = puzzle->outerSlicePos * -0.5f;
+    mat4x4_identity(model);
+    renderSlice(shader, puzzle->outerSlice, 3.5f * puzzle->outerSlicePos);
+    renderCell(shader, puzzle->leftCell, -2.0f + offset);
+    renderCell(shader, puzzle->rightCell, 2.0f + offset);
+    renderSlice(shader, puzzle->innerSlice, offset);
+    
+    offset += 2 * puzzle->middleSlicePos;
+    float arcX = direction + -direction * cos(M_PI * animationProgress);
+    float arcY = sin(M_PI * animationProgress);
+    
+    mat4x4_translate(model, offset + arcX, 2 + arcY, 0);
+    mat4x4_rotate(model, model, 0, 0, -1, direction * M_PI * animationProgress);
+    render1c(shader, {0, 0, 0}, puzzle->topCell.a);
+    if (puzzle->middleSliceDir == UP) {
+        render2c(shader, {0, 0, 1}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, BACK);
+        render2c(shader, {0, 0, -1}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, FRONT);
+    }
+    
+    mat4x4_translate(model, offset + arcX, -2 - arcY, 0);
+    mat4x4_rotate(model, model, 0, 0, -1, -direction * M_PI * animationProgress);
+    render1c(shader, {0, 0, 0}, puzzle->bottomCell.a);
+    if (puzzle->middleSliceDir == UP) {
+        render2c(shader, {0, 0, 1}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, BACK);
+        render2c(shader, {0, 0, -1}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, FRONT);
+    }
+    
+    mat4x4_translate(model, offset + arcX, 0, 2 + arcY);
+    mat4x4_rotate(model, model, 0, 1, 0, direction * M_PI * animationProgress);
+    render1c(shader, {0, 0, 0}, puzzle->frontCell[1].a);
+    if (puzzle->middleSliceDir == FRONT) {
+        render2c(shader, {0, 1, 0}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
+        render2c(shader, {0, -1, 0}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
+    }
+    
+    mat4x4_translate(model, offset + arcX, 0, -2 - arcY);
+    mat4x4_rotate(model, model, 0, 1, 0, -direction * M_PI * animationProgress);
+    render1c(shader, {0, 0, 0}, puzzle->backCell[1].a);
+    if (puzzle->middleSliceDir == FRONT) {
+        render2c(shader, {0, 1, 0}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
+        render2c(shader, {0, -1, 0}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
+    }
 }
 
 void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
@@ -468,53 +593,27 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
             
             switch (entry.type) {
                 case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
-                case GYRO_OUTER: puzzle->outerSlicePos *= -1; break;
+                case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
+                case GYRO_MIDDLE:
+                    if (entry.location == 0) {
+                        if (puzzle->middleSliceDir == UP) {
+                            puzzle->middleSliceDir = FRONT;
+                        } else {
+                            puzzle->middleSliceDir = UP;
+                        }
+                    } else {
+                        puzzle->middleSlicePos += entry.location;
+                    }
+                    break;
             }
             
             animationProgress = 0.0f;
         }
     } else {
-        bool foundDirection = false;
-        int directionKeys[] = {GLFW_KEY_I, GLFW_KEY_K, GLFW_KEY_J, GLFW_KEY_L, GLFW_KEY_O, GLFW_KEY_U};
-        RotateDirection direction;
-        for (int i = 0; i < 6; i++) {
-            if (glfwGetKey(window, directionKeys[i])) {
-                foundDirection = true;
-                direction = (RotateDirection)i;
-            }
-        }
-        if (foundDirection) {
-            if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-                // gyro
-                return;
-            }
-            
-            int cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
-                              GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
-            bool foundCell = false;
-            CellLocation cell;
-            for (int i = 0; i < 8; i++) {
-                if (glfwGetKey(window, cellKeys[i])) {
-                    foundCell = true;
-                    cell = (CellLocation)i;
-                }
-            }
-            if (foundCell) {
-                if (puzzle->canRotateCell(cell, direction)) {
-                    MoveEntry entry;
-                    entry.type = TURN;
-                    entry.animLength = 1.0f;
-                    entry.cell = cell;
-                    entry.direction = direction;
-                    pendingMoves.push(entry);
-                } else {
-                    return;
-                }
-            } else {
-                // whole puzzle rotation
-            }
-            animating = true;
-        } else if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+        if (checkMiddleGyro(window)) return;
+        if (checkDirectionalMove(window)) return;
+        
+        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
             // gyro outer layer
             MoveEntry entry;
             entry.type = GYRO_OUTER;
@@ -522,7 +621,83 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
             entry.location = -1 * puzzle->outerSlicePos;
             pendingMoves.push(entry);
             animating = true;
-            return;
         }
     }
+}
+
+bool PuzzleRenderer::checkMiddleGyro(GLFWwindow* window) {
+    if (glfwGetKey(window, GLFW_KEY_M) || glfwGetKey(window, GLFW_KEY_PERIOD)) {
+        int direction = (glfwGetKey(window, GLFW_KEY_M)) ? -1 : 1;
+        if (puzzle->canGyroMiddle(direction)) {
+            MoveEntry entry;
+            entry.type = GYRO_MIDDLE;
+            entry.animLength = 1.0f;
+            entry.location = direction;
+            pendingMoves.push(entry);
+            animating = true;
+            return true;
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_COMMA)) {
+        MoveEntry entry;
+        entry.type = GYRO_MIDDLE;
+        entry.animLength = 1.0f;
+        entry.location = 0;
+        pendingMoves.push(entry);
+        animating = true;
+        return true;
+    }
+    return false;
+}
+
+bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
+    bool foundDirection = false;
+    int directionKeys[] = {GLFW_KEY_I, GLFW_KEY_K, GLFW_KEY_J, GLFW_KEY_L, GLFW_KEY_O, GLFW_KEY_U};
+    RotateDirection direction;
+    for (int i = 0; i < 6; i++) {
+        if (glfwGetKey(window, directionKeys[i])) {
+            // Move outer layer
+            foundDirection = true;
+            direction = (RotateDirection)i;
+        }
+    }
+    if (foundDirection) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+            // gyro
+            return true;
+        }
+        
+        int cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
+                          GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
+        bool foundCell = false;
+        CellLocation cell;
+        for (int i = 0; i < 8; i++) {
+            if (glfwGetKey(window, cellKeys[i])) {
+                foundCell = true;
+                cell = (CellLocation)i;
+            }
+        }
+        if (foundCell) {
+            if (puzzle->canRotateCell(cell, direction)) {
+                MoveEntry entry;
+                entry.type = TURN;
+                entry.animLength = 1.0f;
+                entry.cell = cell;
+                entry.direction = direction;
+                pendingMoves.push(entry);
+                animating = true;
+                return true;
+            }
+        } else if (direction == YZ || direction == ZY) {
+            // whole puzzle rotation
+            MoveEntry entry;
+            entry.type = ROTATE;
+            entry.animLength = 1.0f;
+            entry.direction = direction;
+            pendingMoves.push(entry);
+            animating = true;
+            return true;
+        }
+    }
+    return false;
 }
