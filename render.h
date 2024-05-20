@@ -77,6 +77,8 @@ class PuzzleRenderer {
         void renderNoAnimation(Shader *shader);
         void renderLeftAnimation(Shader *shader, RotateDirection direction);
         void renderRightAnimation(Shader *shader, RotateDirection direction);
+        void renderInnerAnimation(Shader *shader, RotateDirection direction);
+        void renderOuterAnimation(Shader *shader, RotateDirection direction);
         void renderOuterGyroAnimation(Shader *Shader, int location);
         void renderMiddleGyroAnimation(Shader *Shader, int direction);
         void renderMiddleGyroPosAnimation(Shader *Shader, int direction);
