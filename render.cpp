@@ -348,6 +348,8 @@ void PuzzleRenderer::renderPuzzle(Shader *shader) {
             case IN: renderInnerAnimation(shader, move.direction); break;
             case OUT: renderOuterAnimation(shader, move.direction); break;
         }
+    } else if (pendingMoves.front().type == ROTATE) {
+        renderRotateAnimation(shader, pendingMoves.front().direction);
     } else if (pendingMoves.front().type == GYRO_OUTER) {
         renderOuterGyroAnimation(shader, pendingMoves.front().location);
     } else if (pendingMoves.front().type == GYRO_MIDDLE) {
@@ -491,6 +493,19 @@ void PuzzleRenderer::renderOuterAnimation(Shader *shader, RotateDirection direct
     renderSlice(shader, puzzle->outerSlice, 3.5f * puzzle->outerSlicePos);
     renderCell(shader, puzzle->leftCell, -2.0f + offset, {0, -1, -1});
     renderCell(shader, puzzle->rightCell, 2.0f + offset, {2, -1, -1});
+}
+
+void PuzzleRenderer::renderRotateAnimation(Shader *shader, RotateDirection direction) {
+    int parity = (int)direction * 2 - 1;
+    mat4x4_identity(model);
+    mat4x4_rotate(model, model, 1, 0, 0, parity * M_PI_2 * animationProgress);
+
+    float offset = puzzle->outerSlicePos * -0.5f;
+    renderSlice(shader, puzzle->outerSlice, 3.5f * puzzle->outerSlicePos);
+    renderCell(shader, puzzle->leftCell, -2.0f + offset);
+    renderCell(shader, puzzle->rightCell, 2.0f + offset);
+    renderSlice(shader, puzzle->innerSlice, offset);
+    renderMiddleSlice(shader, true);
 }
 
 void PuzzleRenderer::renderOuterGyroAnimation(Shader *shader, int location) {
@@ -640,18 +655,9 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
 
             switch (entry.type) {
                 case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
+                case ROTATE: puzzle->rotatePuzzle(entry.direction); break;
                 case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
-                case GYRO_MIDDLE:
-                    if (entry.location == 0) {
-                        if (puzzle->middleSliceDir == UP) {
-                            puzzle->middleSliceDir = FRONT;
-                        } else {
-                            puzzle->middleSliceDir = UP;
-                        }
-                    } else {
-                        puzzle->middleSlicePos += entry.location;
-                    }
-                    break;
+                case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.direction); break;
             }
 
             animationProgress = 0.0f;

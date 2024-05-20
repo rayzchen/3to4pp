@@ -287,3 +287,42 @@ void Puzzle::gyroOuterSlice() {
     if (outerSlicePos * 2 == middleSlicePos) middleSlicePos *= -1;
     outerSlicePos *= -1;
 }
+
+void Puzzle::gyroMiddleSlice(int direction) {
+    if (direction == 0) {
+        if (middleSliceDir == UP) {
+            middleSliceDir = FRONT;
+        } else {
+            middleSliceDir = UP;
+        }
+    } else {
+        middleSlicePos += direction;
+    }
+}
+
+void Puzzle::rotatePuzzle(RotateDirection direction) {
+    rotateCellX(leftCell, direction);
+    rotateCellX(rightCell, direction);
+    rotateSlice(innerSlice, direction, 1);
+    rotateSlice(outerSlice, direction, 1);
+
+    Piece temp = topCell;
+    std::array<Piece*, 5> edges = {&topCell, &backCell[1], &bottomCell, &frontCell[1], &temp};
+    if (direction == ZY) {
+        std::swap(edges[1], edges[3]);
+    }
+    for (int i = 0; i < 4; i++) {
+        *edges[i] = *edges[i + 1];
+    }
+
+    int up = (int)direction * 2;
+    int down = 2 - up;
+    temp = frontCell[up];
+    std::array<Piece*, 5> corners = {&frontCell[up], &backCell[up], &backCell[down], &frontCell[down], &temp};
+    for (int i = 0; i < 4; i++) {
+        *corners[i] = *corners[i + 1];
+        std::swap(corners[i]->a, corners[i]->b);
+    }
+
+    gyroMiddleSlice(0);
+}

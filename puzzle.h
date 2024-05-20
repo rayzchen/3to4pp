@@ -40,6 +40,8 @@ class Puzzle {
         void rotateCell(CellLocation cell, RotateDirection direction);
         void gyroOuterSlice();
         bool canGyroMiddle(int direction);
+        void gyroMiddleSlice(int direction);
+        void rotatePuzzle(RotateDirection direction);
 
     private:
         // [x][y][z]
