@@ -8,7 +8,7 @@ Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
     near = a_near;
     far = a_far;
     mat4x4_perspective(projection, fov, aspect, near, far);
-    
+
     yaw = 0.0f;
     pitch = 0.0f;
     zoom = 10.0f;

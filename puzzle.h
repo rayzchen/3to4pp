@@ -60,10 +60,10 @@ class Puzzle {
         Piece bottomCell;
         std::array<Piece, 3> frontCell;
         std::array<Piece, 3> backCell;
-        
+
         void initCell(CellData& cell, Color center, const std::array<Color, 6> faces);
         void initSlice(SliceData& slice, Color center, const std::array<Color, 4> faces);
-        
+
         void rotateSlice(SliceData& slice, RotateDirection direction, int sliceNum);
         void rotateCellX(CellData& cell, RotateDirection direction);
         void rotateCellY(CellData& cell, RotateDirection direction);

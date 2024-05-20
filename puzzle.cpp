@@ -22,7 +22,7 @@ Puzzle::Puzzle(std::array<Color, 8> scheme) {
 
 void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) {
     cell[1][1][1] = {center, UNUSED, UNUSED, UNUSED};
-    
+
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
             std::array<int, 3> pos = {1, 1, 1};
@@ -30,7 +30,7 @@ void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) 
             cell[pos[0]][pos[1]][pos[2]] = {center, faces[i * 2 + j], UNUSED, UNUSED};
         }
     }
-    
+
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
             for (int k = 0; k < 2; k++) {
@@ -44,7 +44,7 @@ void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) 
             }
         }
     }
-    
+
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 2; j++) {
             for (int k = 0; k < 2; k++) {
@@ -62,7 +62,7 @@ void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) 
 
 void Puzzle::initSlice(SliceData& slice, Color center, std::array<Color, 4> faces) {
     slice[1][1] = {center, UNUSED, UNUSED, UNUSED};
-    
+
     for (int i = 1; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
             std::array<int, 3> pos = {1, 1, 1};
@@ -70,7 +70,7 @@ void Puzzle::initSlice(SliceData& slice, Color center, std::array<Color, 4> face
             slice[pos[1]][pos[2]] = {center, faces[i * 2 - 2 + j], UNUSED, UNUSED};
         }
     }
-    
+
     for (int j = 0; j < 2; j++) {
         for (int k = 0; k < 2; k++) {
             int i = 1;
@@ -142,7 +142,7 @@ void Puzzle::rotateSlice(SliceData& slice, RotateDirection direction, int sliceN
     int front = (direction == YZ) ? 2 : 0;
     int back = 2 - front;
     Piece temp;
-    
+
     // Rotate slice edges
     std::array<Piece*, 4> edges = {&slice[2][1], &slice[1][back], &slice[0][1], &slice[1][front]};
     temp = *edges[0];
@@ -150,7 +150,7 @@ void Puzzle::rotateSlice(SliceData& slice, RotateDirection direction, int sliceN
         *edges[i] = *edges[i + 1];
     }
     *edges[3] = temp;
-    
+
     // Rotate slice corners
     std::array<Piece*, 4> corners = {&slice[2][front], &slice[2][back], &slice[0][back], &slice[0][front]};
     temp = *corners[0];
@@ -158,7 +158,7 @@ void Puzzle::rotateSlice(SliceData& slice, RotateDirection direction, int sliceN
         *corners[i] = *corners[i + 1];
     }
     *corners[3] = temp;
-    
+
     switch (sliceNum) {
         case 1:
             // Fix 3c stickers
@@ -172,7 +172,7 @@ void Puzzle::rotateSlice(SliceData& slice, RotateDirection direction, int sliceN
             for (int i = 0; i < 4; i++) {
                 std::swap(edges[i]->a, edges[i]->c);
             }
-            
+
             // Fix 4c stickers
             int starting = (sliceNum / 2 + ((direction == YZ) ? 1 : 0)) % 2;
             for (int i = starting; i < 4; i += 2) {
@@ -195,7 +195,7 @@ void Puzzle::rotateCellY(CellData& cell, RotateDirection direction) {
     int right = (direction == XZ) ? 2 : 0;
     int left = 2 - right;
     Piece temp;
-    
+
     for (int i = 0; i < 3; i++) {
         // Rotate slice edges
         std::array<Piece*, 4> edges = {&cell[2][i][1], &cell[1][i][left], &cell[0][i][1], &cell[1][i][right]};
@@ -204,7 +204,7 @@ void Puzzle::rotateCellY(CellData& cell, RotateDirection direction) {
             *edges[j] = *edges[j + 1];
         }
         *edges[3] = temp;
-        
+
         // Rotate slice corners
         std::array<Piece*, 4> corners = {&cell[2][i][right], &cell[2][i][left], &cell[0][i][left], &cell[0][i][right]};
         temp = *corners[0];
@@ -212,7 +212,7 @@ void Puzzle::rotateCellY(CellData& cell, RotateDirection direction) {
             *corners[j] = *corners[j + 1];
         }
         *corners[3] = temp;
-        
+
         // Fix 3c stickers
         if (i == 1) {
             for (int j = 0; j < 4; j++) {
@@ -230,7 +230,7 @@ void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
     int top = (direction == XY) ? 2 : 0;
     int bottom = 2 - top;
     Piece temp;
-    
+
     for (int i = 0; i < 3; i++) {
         // Rotate slice edges
         std::array<Piece*, 4> edges = {&cell[2][1][i], &cell[1][bottom][i], &cell[0][1][i], &cell[1][top][i]};
@@ -239,7 +239,7 @@ void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
             *edges[j] = *edges[j + 1];
         }
         *edges[3] = temp;
-        
+
         // Rotate slice corners
         std::array<Piece*, 4> corners = {&cell[2][top][i], &cell[2][bottom][i], &cell[0][bottom][i], &cell[0][top][i]};
         temp = *corners[0];
@@ -247,7 +247,7 @@ void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
             *corners[j] = *corners[j + 1];
         }
         *corners[3] = temp;
-        
+
         // Fix 3c stickers
         if (i == 1) {
             for (int j = 0; j < 4; j++) {
