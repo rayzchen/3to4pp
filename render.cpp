@@ -114,6 +114,10 @@ void Shader::setMat4(const char *loc, mat4x4 matrix) {
     glUniformMatrix4fv(shaderLocation, 1, GL_FALSE, matrix[0]);
 }
 
+Shader::~Shader() {
+    glDeleteProgram(program);
+}
+
 PuzzleRenderer::PuzzleRenderer(Puzzle *puzzle) {
     this->puzzle = puzzle;
     spacing = 0.0f;
@@ -127,6 +131,13 @@ PuzzleRenderer::PuzzleRenderer(Puzzle *puzzle) {
     meshes[2] = new PieceMesh(Pieces::mesh3c);
     meshes[3] = new PieceMesh(Pieces::mesh4c);
 }
+
+PuzzleRenderer::~PuzzleRenderer() {
+    for (int i = 0; i < 4; i++) {
+        delete meshes[i];
+    }
+}
+
 float PuzzleRenderer::getSpacing() {
     return spacing;
 }

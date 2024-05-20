@@ -76,10 +76,13 @@ void Window::run() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    destroy();
 }
 
-void Window::destroy() {
+Window::~Window() {
+    delete shader;
+    delete camera;
+    delete renderer;
+    delete puzzle;
     glfwDestroyWindow(window);
     glfwTerminate();
 }

@@ -9,8 +9,8 @@
 class Window {
     public:
         Window();
+        ~Window();
         void run();
-        void destroy();
         void close();
 
     private:

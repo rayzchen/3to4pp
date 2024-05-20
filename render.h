@@ -22,6 +22,7 @@ class PieceMesh {
 class Shader {
     public:
         Shader(const char *vertex, const char *fragment);
+        ~Shader();
         void use();
         void setInt(const char *loc, int value);
         void setVec3(const char *loc, vec3 vector);
@@ -46,6 +47,7 @@ struct MoveEntry {
 class PuzzleRenderer {
     public:
         PuzzleRenderer(Puzzle *puzzle);
+        ~PuzzleRenderer();
         float getSpacing();
         void setSpacing(float spacing);
         void render1c(Shader *shader, const std::array<float, 3> pos, Color color);
