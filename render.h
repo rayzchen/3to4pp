@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <linmath.h>
 #include <queue>
+#include <array>
 #include "pieces.h"
 #include "puzzle.h"
 
