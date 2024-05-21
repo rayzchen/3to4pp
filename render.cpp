@@ -638,7 +638,9 @@ void PuzzleRenderer::renderMiddleGyroDirAnimation(Shader *shader) {
 
     float parity = (puzzle->middleSliceDir == UP) ? 1.0f : -1.0f;
     CellLocation target1 = (puzzle->middleSliceDir == UP) ? BACK : UP;
-    CellLocation target2 = (puzzle->middleSliceDir == UP) ? FRONT : DOWN;
+    CellLocation target2 = (puzzle->middleSliceDir == UP) ? FRONT : UP;
+    CellLocation target3 = (puzzle->middleSliceDir == UP) ? BACK : DOWN;
+    CellLocation target4 = (puzzle->middleSliceDir == UP) ? FRONT : DOWN;
     if (animationProgress < 0.5f) {
         float arcY = M_SQRT1_2 * sin(parity * M_PI_4 + M_PI * animationProgress);
         float arcZ = M_SQRT1_2 * sin(-parity * M_PI_4 + M_PI * animationProgress);
@@ -652,11 +654,11 @@ void PuzzleRenderer::renderMiddleGyroDirAnimation(Shader *shader) {
 
         mat4x4_translate(model, 0, -1.5 - arcY, 1.5 + arcZ);
         mat4x4_rotate(model, model, 1, 0, 0, -parity * M_PI * animationProgress);
-        render2c(shader, {offset, 0, 0}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, target1);
+        render2c(shader, {offset, 0, 0}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, target3);
 
         mat4x4_translate(model, 0, -1.5 - arcY, -1.5 - arcZ);
         mat4x4_rotate(model, model, 1, 0, 0, parity * M_PI * animationProgress);
-        render2c(shader, {offset, 0, 0}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, target2);
+        render2c(shader, {offset, 0, 0}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, target4);
     } else {
         float glide = -4 * animationProgress * (animationProgress - 1.0f);
         if (puzzle->middleSliceDir == UP) {
