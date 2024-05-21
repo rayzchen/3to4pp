@@ -144,20 +144,18 @@ void Puzzle::rotateSlice(SliceData& slice, RotateDirection direction, int sliceN
     Piece temp;
 
     // Rotate slice edges
-    std::array<Piece*, 4> edges = {&slice[2][1], &slice[1][back], &slice[0][1], &slice[1][front]};
-    temp = *edges[0];
-    for (int i = 0; i < 3; i++) {
+    temp = slice[2][1];
+    std::array<Piece*, 5> edges = {&slice[2][1], &slice[1][back], &slice[0][1], &slice[1][front], &temp};
+    for (int i = 0; i < 4; i++) {
         *edges[i] = *edges[i + 1];
     }
-    *edges[3] = temp;
 
     // Rotate slice corners
-    std::array<Piece*, 4> corners = {&slice[2][front], &slice[2][back], &slice[0][back], &slice[0][front]};
-    temp = *corners[0];
-    for (int i = 0; i < 3; i++) {
+    temp = slice[2][front];
+    std::array<Piece*, 5> corners = {&slice[2][front], &slice[2][back], &slice[0][back], &slice[0][front], &temp};
+    for (int i = 0; i < 4; i++) {
         *corners[i] = *corners[i + 1];
     }
-    *corners[3] = temp;
 
     switch (sliceNum) {
         case 1:
@@ -198,20 +196,18 @@ void Puzzle::rotateCellY(CellData& cell, RotateDirection direction) {
 
     for (int i = 0; i < 3; i++) {
         // Rotate slice edges
-        std::array<Piece*, 4> edges = {&cell[2][i][1], &cell[1][i][left], &cell[0][i][1], &cell[1][i][right]};
-        temp = *edges[0];
-        for (int j = 0; j < 3; j++) {
+        temp = cell[2][i][1];
+        std::array<Piece*, 5> edges = {&cell[2][i][1], &cell[1][i][left], &cell[0][i][1], &cell[1][i][right], &temp};
+        for (int j = 0; j < 4; j++) {
             *edges[j] = *edges[j + 1];
         }
-        *edges[3] = temp;
 
         // Rotate slice corners
-        std::array<Piece*, 4> corners = {&cell[2][i][right], &cell[2][i][left], &cell[0][i][left], &cell[0][i][right]};
-        temp = *corners[0];
-        for (int j = 0; j < 3; j++) {
+        temp = cell[2][i][right];
+        std::array<Piece*, 5> corners = {&cell[2][i][right], &cell[2][i][left], &cell[0][i][left], &cell[0][i][right], &temp};
+        for (int j = 0; j < 4; j++) {
             *corners[j] = *corners[j + 1];
         }
-        *corners[3] = temp;
 
         // Fix 3c stickers
         if (i == 1) {
@@ -233,20 +229,18 @@ void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
 
     for (int i = 0; i < 3; i++) {
         // Rotate slice edges
-        std::array<Piece*, 4> edges = {&cell[2][1][i], &cell[1][bottom][i], &cell[0][1][i], &cell[1][top][i]};
-        temp = *edges[0];
-        for (int j = 0; j < 3; j++) {
+        temp = cell[2][1][i];
+        std::array<Piece*, 5> edges = {&cell[2][1][i], &cell[1][bottom][i], &cell[0][1][i], &cell[1][top][i], &temp};
+        for (int j = 0; j < 4; j++) {
             *edges[j] = *edges[j + 1];
         }
-        *edges[3] = temp;
 
         // Rotate slice corners
-        std::array<Piece*, 4> corners = {&cell[2][top][i], &cell[2][bottom][i], &cell[0][bottom][i], &cell[0][top][i]};
-        temp = *corners[0];
-        for (int j = 0; j < 3; j++) {
+        temp = cell[2][top][i];
+        std::array<Piece*, 5> corners = {&cell[2][top][i], &cell[2][bottom][i], &cell[0][bottom][i], &cell[0][top][i], &temp};
+        for (int j = 0; j < 4; j++) {
             *corners[j] = *corners[j + 1];
         }
-        *corners[3] = temp;
 
         // Fix 3c stickers
         if (i == 1) {
@@ -273,6 +267,82 @@ void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
             }
         }
     }
+}
+
+void Puzzle::gyroCell(CellLocation cell) {
+    switch (cell) {
+        case RIGHT:
+        case LEFT:
+            gyroCellX(cell);
+            break;
+        case UP:
+        case DOWN:
+            gyroCellY(cell);
+            break;
+        case FRONT:
+        case BACK:
+            gyroCellZ(cell);
+            break;
+    }
+}
+
+void Puzzle::gyroCellX(CellLocation cell) {
+    int parity = 1 - ((int)cell % 2) * 2;
+    std::cout << "gyro" << std::endl;
+    SliceData temp = leftCell[1];
+    std::array<SliceData*, 5> slices = {&leftCell[1], &innerSlice, &rightCell[1], &outerSlice, &temp};
+    if (cell == LEFT) std::swap(slices[1], slices[3]);
+    for (int i = 0; i < 4; i++) {
+        *slices[i] = *slices[i + 1];
+    }
+    temp = leftCell[0];
+    slices = {&leftCell[0], &leftCell[2], &rightCell[0], &rightCell[2], &temp};
+    if (cell == LEFT) std::swap(slices[1], slices[3]);
+    for (int i = 0; i < 4; i++) {
+        *slices[i] = *slices[i + 1];
+    }
+    middleSlicePos -= parity;
+    if ((outerSlicePos == parity && middleSlicePos == -2 * parity) ||
+        (outerSlicePos == -parity && middleSlicePos == -3 * parity)) {
+        middleSlicePos += 4 * parity;
+    }
+    for (int i = 1; i < 3; i++) {
+        for (int j = 0; j < 3; j += 2) {
+            for (int k = 0; k < 3; k += 2) {
+                std::array<int, 3> pos = {1, 1, 1};
+                pos[(i + 1) % 3] = j;
+                pos[(i + 2) % 3] = k;
+                std::swap(leftCell[pos[0]][pos[1]][pos[2]].a, leftCell[pos[0]][pos[1]][pos[2]].c);
+                std::swap(rightCell[pos[0]][pos[1]][pos[2]].a, rightCell[pos[0]][pos[1]][pos[2]].c);
+            }
+        }
+    }
+    for (int i = 0; i < 3; i += 2) {
+        for (int j = 0; j < 3; j += 2) {
+            for (int k = 0; k < 3; k += 2) {
+                int twist = (i + j + k) % 4;
+                if (twist == 2) {
+                    std::swap(leftCell[i][j][k].a, leftCell[i][j][k].d);
+                    std::swap(leftCell[i][j][k].d, leftCell[i][j][k].c);
+                    std::swap(rightCell[i][j][k].a, rightCell[i][j][k].d);
+                    std::swap(rightCell[i][j][k].d, rightCell[i][j][k].c);
+                } else {
+                    std::swap(leftCell[i][j][k].a, leftCell[i][j][k].c);
+                    std::swap(leftCell[i][j][k].c, leftCell[i][j][k].d);
+                    std::swap(rightCell[i][j][k].a, rightCell[i][j][k].c);
+                    std::swap(rightCell[i][j][k].c, rightCell[i][j][k].d);
+                }
+            }
+        }
+    }
+}
+
+void Puzzle::gyroCellY(CellLocation cell) {
+    // todo
+}
+
+void Puzzle::gyroCellZ(CellLocation cell) {
+    // todo
 }
 
 bool Puzzle::canGyroMiddle(int direction) {

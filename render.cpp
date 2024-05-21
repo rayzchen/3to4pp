@@ -361,6 +361,14 @@ void PuzzleRenderer::renderPuzzle(Shader *shader) {
         }
     } else if (pendingMoves.front().type == ROTATE) {
         renderRotateAnimation(shader, pendingMoves.front().direction);
+    } else if (pendingMoves.front().type == GYRO) {
+        MoveEntry move = pendingMoves.front();
+        switch (move.cell) {
+            case LEFT:
+            case RIGHT:
+                renderGyroXAnimation(shader, move.cell);
+                break;
+        }
     } else if (pendingMoves.front().type == GYRO_OUTER) {
         renderOuterGyroAnimation(shader, pendingMoves.front().location);
     } else if (pendingMoves.front().type == GYRO_MIDDLE) {
@@ -519,6 +527,62 @@ void PuzzleRenderer::renderRotateAnimation(Shader *shader, RotateDirection direc
     renderMiddleSlice(shader, true);
 }
 
+void PuzzleRenderer::renderGyroXAnimation(Shader *shader, CellLocation cell) {
+    if (animationProgress < 2.0f) {
+        int mainDir = (int)cell % 2 * -2 + 1;
+        int moveSlice = (1 - mainDir * puzzle->outerSlicePos) / 2;
+        int middleMove = -1 + 3 * moveSlice;
+        float mainOffsetX, mainOffsetY, slicePosX, slicePosY;
+        std::array<CellData*, 2> cells = {&puzzle->leftCell, &puzzle->rightCell};
+        int left = (int)cell % 2;
+        int right = 1 - left;
+        if (animationProgress < 0.5f) {
+            slicePosX = -0.5f * puzzle->outerSlicePos - 2 * mainDir;
+            slicePosY = -16 * animationProgress * (animationProgress - 1.0f);
+            mainOffsetX = -0.5f * puzzle->outerSlicePos;
+            mainOffsetY = 2 * animationProgress * (animationProgress - 1.0f);
+        } else if (animationProgress < 1.5f) {
+            slicePosX = -0.5f * puzzle->outerSlicePos + mainDir * (smoothstep(animationProgress - 0.5f) * 6 - 2);
+            slicePosY = 4.0f;
+            mainOffsetX = -0.5f * puzzle->outerSlicePos - mainDir * smoothstep(animationProgress - 0.5f) * 2;
+            mainOffsetY = -0.5f;
+        } else {
+            slicePosX = -0.5f * puzzle->outerSlicePos + 4 * mainDir;
+            slicePosY = -16 * (animationProgress - 1.0f) * (animationProgress - 2.0f);
+            mainOffsetX = -0.5f * puzzle->outerSlicePos - 2 * mainDir;
+            mainOffsetY = 2 * (animationProgress - 1.0f) * (animationProgress - 2.0f);
+        }
+        mat4x4_translate(model, slicePosX, slicePosY, 0);
+        renderCell(shader, *cells[left], 0.0f, {1 - mainDir, -1, -1});
+        if (mainDir * puzzle->outerSlicePos == 1) {
+            renderCell(shader, *cells[left], 0.0f, {1, -1, -1});
+        } else {
+            renderSlice(shader, puzzle->outerSlice, 2.0f * puzzle->outerSlicePos);
+        }
+        // Undo X offset made by renderMiddleSlice
+        float reset = -2 * puzzle->middleSlicePos;
+        mat4x4_translate_in_place(model, reset - mainDir + puzzle->outerSlicePos, 0, 0);
+        if (puzzle->middleSlicePos == middleMove * puzzle->outerSlicePos) renderMiddleSlice(shader, false);
+
+        mat4x4_translate(model, mainOffsetX, mainOffsetY, 0);
+        if (mainDir * puzzle->outerSlicePos == 1) {
+            renderSlice(shader, puzzle->outerSlice, 4.0f * puzzle->outerSlicePos);
+        } else {
+            renderCell(shader, *cells[left], 2.0f, {1, -1, -1});
+        }
+        renderCell(shader, *cells[left], -2.0f * mainDir, {1 + mainDir, -1, -1});
+        renderCell(shader, *cells[right], 2.0f * mainDir);
+        renderSlice(shader, puzzle->innerSlice, 0.0f);
+        if (puzzle->middleSlicePos != middleMove * puzzle->outerSlicePos) renderMiddleSlice(shader, false);
+    } else {
+        if (puzzle->outerSlicePos == 1) {
+            // todo
+        } else {
+            // todo
+        }
+    }
+}
+
 void PuzzleRenderer::renderOuterGyroAnimation(Shader *shader, int location) {
     float mainOffsetX, mainOffsetY, slicePosX, slicePosY;
     if (animationProgress < 0.5f) {
@@ -659,7 +723,7 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
         animating = false;
     }
     if (animating) {
-        animationProgress += dt * 4.0f;
+        animationProgress += dt * 2.0f;
         if (animationProgress > pendingMoves.front().animLength) {
             MoveEntry entry = pendingMoves.front();
             pendingMoves.pop();
@@ -667,6 +731,7 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
             switch (entry.type) {
                 case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
                 case ROTATE: puzzle->rotatePuzzle(entry.direction); break;
+                case GYRO: puzzle->gyroCell(entry.cell); break;
                 case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
                 case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.location); break;
             }
@@ -715,8 +780,18 @@ bool PuzzleRenderer::checkMiddleGyro(GLFWwindow* window) {
 }
 
 bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
-    bool foundDirection = false;
+    int cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
+                      GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
+    bool foundCell = false;
+    CellLocation cell;
+    for (int i = 0; i < 8; i++) {
+        if (glfwGetKey(window, cellKeys[i])) {
+            foundCell = true;
+            cell = (CellLocation)i;
+        }
+    }
     int directionKeys[] = {GLFW_KEY_I, GLFW_KEY_K, GLFW_KEY_J, GLFW_KEY_L, GLFW_KEY_O, GLFW_KEY_U};
+    bool foundDirection = false;
     RotateDirection direction;
     for (int i = 0; i < 6; i++) {
         if (glfwGetKey(window, directionKeys[i])) {
@@ -725,23 +800,18 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
             direction = (RotateDirection)i;
         }
     }
-    if (foundDirection) {
+    if (foundCell) {
         if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-            // gyro
+            MoveEntry entry;
+            entry.type = GYRO;
+            entry.animLength = 2.0f;
+            entry.cell = cell;
+            pendingMoves.push(entry);
+            animating = true;
             return true;
         }
 
-        int cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
-                          GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
-        bool foundCell = false;
-        CellLocation cell;
-        for (int i = 0; i < 8; i++) {
-            if (glfwGetKey(window, cellKeys[i])) {
-                foundCell = true;
-                cell = (CellLocation)i;
-            }
-        }
-        if (foundCell) {
+        if (foundDirection) {
             if (puzzle->canRotateCell(cell, direction)) {
                 MoveEntry entry;
                 entry.type = TURN;
@@ -752,16 +822,16 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
                 animating = true;
                 return true;
             }
-        } else if (direction == YZ || direction == ZY) {
-            // whole puzzle rotation
-            MoveEntry entry;
-            entry.type = ROTATE;
-            entry.animLength = 1.0f;
-            entry.direction = direction;
-            pendingMoves.push(entry);
-            animating = true;
-            return true;
         }
+    } else if (foundDirection && (direction == YZ || direction == ZY)) {
+        // whole puzzle rotation
+        MoveEntry entry;
+        entry.type = ROTATE;
+        entry.animLength = 1.0f;
+        entry.direction = direction;
+        pendingMoves.push(entry);
+        animating = true;
+        return true;
     }
     return false;
 }

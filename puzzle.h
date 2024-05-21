@@ -27,8 +27,8 @@ typedef struct {
     Color d;
 } Piece;
 
-typedef std::array<std::array<std::array<Piece, 3>, 3>, 3> CellData;
 typedef std::array<std::array<Piece, 3>, 3> SliceData;
+typedef std::array<SliceData, 3> CellData;
 
 class Puzzle {
     friend class PuzzleRenderer;
@@ -38,6 +38,7 @@ class Puzzle {
         static Puzzle load();
         bool canRotateCell(CellLocation cell, RotateDirection direction);
         void rotateCell(CellLocation cell, RotateDirection direction);
+        void gyroCell(CellLocation cell);
         void gyroOuterSlice();
         bool canGyroMiddle(int direction);
         void gyroMiddleSlice(int direction);
@@ -70,6 +71,9 @@ class Puzzle {
         void rotateCellX(CellData& cell, RotateDirection direction);
         void rotateCellY(CellData& cell, RotateDirection direction);
         void rotateCellZ(CellData& cell, RotateDirection direction);
+        void gyroCellX(CellLocation cell);
+        void gyroCellY(CellLocation cell);
+        void gyroCellZ(CellLocation cell);
 };
 
 #endif // puzzle.h
