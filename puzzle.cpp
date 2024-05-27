@@ -288,7 +288,6 @@ void Puzzle::gyroCell(CellLocation cell) {
 
 void Puzzle::gyroCellX(CellLocation cell) {
     int parity = 1 - ((int)cell % 2) * 2;
-    std::cout << "gyro" << std::endl;
     SliceData temp = leftCell[1];
     std::array<SliceData*, 5> slices = {&leftCell[1], &innerSlice, &rightCell[1], &outerSlice, &temp};
     if (cell == LEFT) std::swap(slices[1], slices[3]);
@@ -305,6 +304,10 @@ void Puzzle::gyroCellX(CellLocation cell) {
     if ((outerSlicePos == parity && middleSlicePos == -2 * parity) ||
         (outerSlicePos == -parity && middleSlicePos == -3 * parity)) {
         middleSlicePos += 4 * parity;
+    }
+    for (int i = 0; i < 3; i += 2) {
+        std::swap(leftCell[i][1][1].a, leftCell[i][1][1].b);
+        std::swap(rightCell[i][1][1].a, rightCell[i][1][1].b);
     }
     for (int i = 1; i < 3; i++) {
         for (int j = 0; j < 3; j += 2) {
