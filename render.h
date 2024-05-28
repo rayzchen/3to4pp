@@ -56,13 +56,14 @@ class PuzzleRenderer {
         void render4c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 4> colors, int orientation);
         void renderPuzzle(Shader *shader);
         void renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset, std::array<int, 3> sliceFilter = {-1, -1, -1});
-        void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset);
+        void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset, std::array<int, 2> stripFilter = {-1, -1});
         void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ = 0.0f);
 
         void updateMouse(GLFWwindow* window, double dt);
         void updateAnimations(GLFWwindow *window, double dt);
         bool checkMiddleGyro(GLFWwindow* window);
         bool checkDirectionalMove(GLFWwindow* window);
+        void startGyro(CellLocation cell);
 
     private:
         Puzzle *puzzle;
@@ -83,6 +84,8 @@ class PuzzleRenderer {
         void renderOuterAnimation(Shader *shader, RotateDirection direction);
         void renderRotateAnimation(Shader *shader, RotateDirection direction);
         void renderGyroXAnimation(Shader *shader, CellLocation cell);
+        void renderGyroYAnimation(Shader *shader, CellLocation cell);
+        void renderGyroZAnimation(Shader *shader, CellLocation cell);
         void renderOuterGyroAnimation(Shader *Shader, int location);
         void renderMiddleGyroAnimation(Shader *Shader, int direction);
         void renderMiddleGyroPosAnimation(Shader *Shader, int direction);

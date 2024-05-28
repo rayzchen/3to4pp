@@ -341,11 +341,68 @@ void Puzzle::gyroCellX(CellLocation cell) {
 }
 
 void Puzzle::gyroCellY(CellLocation cell) {
-    // todo
+    std::array<SliceData*, 2> slices = {&innerSlice, &outerSlice};
+    int inner = cell % 2;
+    int outer = 1 - inner;
+    rotateCellZ(leftCell, (RotateDirection)(4 + inner));
+    rotateCellZ(rightCell, (RotateDirection)(4 + outer));
+    Piece temp;
+
+    // Cycle center strip
+    std::array<Piece*, 3> topPieces = {&backCell[2], &topCell, &frontCell[2]};
+    std::array<Piece*, 3> bottomPieces = {&backCell[0], &bottomCell, &frontCell[0]};
+    for (int i = 0; i < 3; i++) {
+        Piece temp = *topPieces[i];
+        std::array<Piece*, 5> pieces = {topPieces[i], &(*slices[outer])[1][i], bottomPieces[i], &(*slices[inner])[1][i], &temp};
+        for (int j = 0; j < 4; j++) {
+            *pieces[j] = *pieces[j + 1];
+            if (i != 1) {
+                std::swap(pieces[j]->a, pieces[j]->b);
+            }
+        }
+    }
+
+    // Cycle edge strip
+    for (int i = 0; i < 3; i++) {
+        Piece temp = (*slices[inner])[2][i];
+        std::array<Piece*, 5> pieces = {&(*slices[inner])[2][i], &(*slices[outer])[2][i], &(*slices[outer])[0][i], &(*slices[inner])[0][i], &temp};
+        for (int j = 0; j < 4; j++) {
+            *pieces[j] = *pieces[j + 1];
+            std::swap(pieces[j]->a, pieces[j]->b);
+        }
+    }
 }
 
 void Puzzle::gyroCellZ(CellLocation cell) {
-    // todo
+    std::array<SliceData*, 2> slices = {&innerSlice, &outerSlice};
+    int inner = cell % 2;
+    int outer = 1 - inner;
+    rotateCellY(leftCell, (RotateDirection)(2 + outer));
+    rotateCellY(rightCell, (RotateDirection)(2 + inner));
+    Piece temp;
+
+    // Cycle center strip
+    for (int i = 0; i < 3; i++) {
+        Piece temp = frontCell[i];
+        std::array<Piece*, 5> pieces = {&frontCell[i], &(*slices[outer])[i][1], &backCell[i], &(*slices[inner])[i][1], &temp};
+        for (int j = 0; j < 4; j++) {
+            *pieces[j] = *pieces[j + 1];
+        }
+    }
+
+    // Cycle edge strip
+    for (int i = 0; i < 3; i++) {
+        Piece temp = (*slices[inner])[i][2];
+        std::array<Piece*, 5> pieces = {&(*slices[inner])[i][2], &(*slices[outer])[i][2], &(*slices[outer])[i][0], &(*slices[inner])[i][0], &temp};
+        for (int j = 0; j < 4; j++) {
+            *pieces[j] = *pieces[j + 1];
+            if (i == 1) {
+                std::swap(pieces[j]->a, pieces[j]->b);
+            } else {
+                std::swap(pieces[j]->b, pieces[j]->c);
+            }
+        }
+    }
 }
 
 bool Puzzle::canGyroMiddle(int direction) {

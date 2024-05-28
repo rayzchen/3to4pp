@@ -256,6 +256,11 @@ void PuzzleRenderer::updateMouse(GLFWwindow* window, double dt) {
     }
 }
 
+bool checkFilter(std::array<int, 2> filter, std::array<int, 2> pos) {
+    return ((filter[0] == -1 || filter[0] == pos[0] + 1) &&
+            (filter[1] == -1 || filter[1] == pos[1] + 1));
+}
+
 bool checkFilter(std::array<int, 3> filter, std::array<int, 3> pos) {
     return ((filter[0] == -1 || filter[0] == pos[0] + 1) &&
             (filter[1] == -1 || filter[1] == pos[1] + 1) &&
@@ -306,15 +311,19 @@ void PuzzleRenderer::renderCell(Shader *shader, const std::array<std::array<std:
     }
 }
 
-void PuzzleRenderer::renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset) {
-    render1c(shader, {offset, 0, 0}, slice[1][1].a);
+void PuzzleRenderer::renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset, std::array<int, 2> stripFilter) {
+    if (checkFilter(stripFilter, {0, 0})) {
+        render1c(shader, {offset, 0, 0}, slice[1][1].a);
+    }
     for (int i = 1; i < 3; i++) {
         for (int j = 0; j < 2; j++) {
             std::array<int, 3> pos = {0, 0, 0};
             pos[i] += j * -2 + 1;
-            Piece piece = slice[pos[1] + 1][pos[2] + 1];
-            CellLocation orientation = (CellLocation)(i * 2 + j + 2);
-            render2c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b}, orientation);
+            if (checkFilter(stripFilter, {pos[1], pos[2]})) {
+                Piece piece = slice[pos[1] + 1][pos[2] + 1];
+                CellLocation orientation = (CellLocation)(i * 2 + j + 2);
+                render2c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b}, orientation);
+            }
         }
     }
 
@@ -323,8 +332,10 @@ void PuzzleRenderer::renderSlice(Shader *shader, const std::array<std::array<Pie
             std::array<int, 3> pos = {0, 0, 0};
             pos[1] = k * -2 + 1;
             pos[2] = j * -2 + 1;
-            Piece piece = slice[pos[1] + 1][pos[2] + 1];
-            render3c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c});
+            if (checkFilter(stripFilter, {pos[1], pos[2]})) {
+                Piece piece = slice[pos[1] + 1][pos[2] + 1];
+                render3c(shader, {(float)pos[0] + offset, (float)pos[1], (float)pos[2]}, {piece.a, piece.b, piece.c});
+            }
         }
     }
 }
@@ -368,6 +379,14 @@ void PuzzleRenderer::renderPuzzle(Shader *shader) {
             case LEFT:
             case RIGHT:
                 renderGyroXAnimation(shader, move.cell);
+                break;
+            case UP:
+            case DOWN:
+                renderGyroYAnimation(shader, move.cell);
+                break;
+            case FRONT:
+            case BACK:
+                renderGyroZAnimation(shader, move.cell);
                 break;
         }
     } else if (pendingMoves.front().type == GYRO_OUTER) {
@@ -628,7 +647,7 @@ void PuzzleRenderer::renderGyroXAnimation(Shader *shader, CellLocation cell) {
 
             for (int j = -1; j < 2; j += 2) {
                 for (int k = -1; k < 2; k += 2) {
-                    std::array<float, 2> pos = {j, k};
+                    std::array<float, 2> pos = {(float)j, (float)k};
                     Piece piece = (*slices[i])[pos[0] + 1][pos[1] + 1];
                     pos[0] *= (1 + offset * 4);
                     pos[1] *= (1 + offset * 4);
@@ -638,6 +657,160 @@ void PuzzleRenderer::renderGyroXAnimation(Shader *shader, CellLocation cell) {
                     mat4x4_rotate(model, model, 0, k * flipRot, 0, M_PI * rotProgress);
                     mat4x4_rotate(model, model, j * k, 0, 0, M_PI_2 * rotProgress);
                     render4c(shader, {0, 0, 0}, {piece.a, piece.b, piece.c, piece.d}, orientation);
+                }
+            }
+        }
+    }
+}
+
+void PuzzleRenderer::renderGyroYAnimation(Shader *shader, CellLocation cell) {
+    int direction = puzzle->outerSlicePos * ((int)cell % 2 * -2 + 1);
+    std::array<CellData*, 2> cells = {&puzzle->leftCell, &puzzle->rightCell};
+    int left = (1 - puzzle->outerSlicePos) / 2;
+    int right = 1 - left;
+    if (animationProgress < 1.0f) {
+        float halfOffset = -2 * animationProgress * (animationProgress - 1.0f);
+
+        mat4x4_translate(model, puzzle->outerSlicePos * -(halfOffset + 2.5f), 0, 0);
+        mat4x4_rotate(model, model, 0, 0, -direction, M_PI_2 * animationProgress);
+        renderCell(shader, *cells[left], 0);
+
+        mat4x4_translate(model, puzzle->outerSlicePos * (halfOffset + 1.5f), 0, 0);
+        mat4x4_rotate(model, model, 0, 0, direction, M_PI_2 * animationProgress);
+        mat4x4_translate_in_place(model, puzzle->outerSlicePos * -1.5f, 0, 0);
+        renderSlice(shader, puzzle->innerSlice, puzzle->outerSlicePos * -0.5f);
+        renderMiddleSlice(shader, true);
+        renderCell(shader, *cells[right], puzzle->outerSlicePos * 1.5f);
+        renderSlice(shader, puzzle->outerSlice, puzzle->outerSlicePos * 3.5f);
+    } else {
+        mat4x4_translate(model, puzzle->outerSlicePos * -2.5f, 0, 0);
+        mat4x4_rotate(model, model, 0, 0, -direction, M_PI_2);
+        renderCell(shader, *cells[left], 0);
+
+        mat4x4 base;
+        mat4x4_translate(base, puzzle->outerSlicePos * 1.5f, 0, 0);
+        mat4x4_rotate(base, base, 0, 0, direction, M_PI_2);
+        mat4x4_translate_in_place(base, puzzle->outerSlicePos * -1.5f, 0, 0);
+
+        mat4x4_dup(model, base);
+        renderSlice(shader, puzzle->innerSlice, puzzle->outerSlicePos * -0.5f, {1, -1});
+        renderMiddleSlice(shader, true);
+        renderCell(shader, *cells[right], puzzle->outerSlicePos * 1.5f);
+        renderSlice(shader, puzzle->outerSlice, puzzle->outerSlicePos * 3.5f, {1, -1});
+
+        float stripYRotation = std::min(1.0f, std::max(0.0f, (animationProgress - 1.0f) * 2));
+        float stripXOffset = std::min(1.0f, std::max(0.0f, (animationProgress - 1.5f) * 2));
+        stripYRotation = -M_PI_2 * stripYRotation * puzzle->outerSlicePos;
+        stripXOffset = (stripXOffset + 0.5f) * puzzle->outerSlicePos;
+        int stripFilter = (animationProgress < 2.0f) ? -1 : 1;
+        for (int i = -1; i < 2; i += 2) {
+            mat4x4_dup(model, base);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * -0.5f + stripXOffset, i * 1.5f, 0);
+            mat4x4_rotate(model, model, 0, 0, i, stripYRotation);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * -0.5f, -i * 1.5f, 0);
+            renderSlice(shader, puzzle->innerSlice, 0, {1 + i, stripFilter});
+            mat4x4_dup(model, base);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * 3.5f - stripXOffset, i * 1.5f, 0);
+            mat4x4_rotate(model, model, 0, 0, i, -stripYRotation);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * 0.5f, -i * 1.5f, 0);
+            renderSlice(shader, puzzle->outerSlice, 0, {1 + i, stripFilter});
+        }
+
+        if (animationProgress > 2.0f) {
+            mat4x4_identity(model);
+            for (int i = -1; i < 2; i += 2) {
+                for (int j = -1; j < 2; j += 2) {
+                    float offsetX = puzzle->outerSlicePos * 1.5f - 2 * direction * j;
+                    float offsetY = puzzle->outerSlicePos * direction;
+                    float offsetZ = i * (1 + sinf(M_PI * (animationProgress - 2.0f)));
+                    float angle = M_PI_2 * smoothstep(animationProgress - 2.0f);
+
+                    Piece piece = puzzle->outerSlice[j + 1][i + 1];
+                    mat4x4_translate(model, offsetX, offsetY, offsetZ);
+                    mat4x4_rotate(model, model, 0, -j, 0, angle);
+                    render3c(shader, {0, 0, 0}, {piece.a, piece.b, piece.c});
+
+                    piece = puzzle->innerSlice[j + 1][i + 1];
+                    mat4x4_translate(model, offsetX, -offsetY, offsetZ);
+                    mat4x4_rotate(model, model, 0, -j, 0, angle);
+                    render3c(shader, {0, 0, 0}, {piece.a, piece.b, piece.c});
+                }
+            }
+        }
+    }
+}
+
+void PuzzleRenderer::renderGyroZAnimation(Shader *shader, CellLocation cell) {
+    int direction = puzzle->outerSlicePos * ((int)cell % 2 * 2 - 1);
+    std::array<CellData*, 2> cells = {&puzzle->leftCell, &puzzle->rightCell};
+    int left = (1 - puzzle->outerSlicePos) / 2;
+    int right = 1 - left;
+    if (animationProgress < 1.0f) {
+        float halfOffset = -2 * animationProgress * (animationProgress - 1.0f);
+
+        mat4x4_translate(model, puzzle->outerSlicePos * -(halfOffset + 2.5f), 0, 0);
+        mat4x4_rotate(model, model, 0, -direction, 0, M_PI_2 * animationProgress);
+        renderCell(shader, *cells[left], 0);
+
+        mat4x4_translate(model, puzzle->outerSlicePos * (halfOffset + 1.5f), 0, 0);
+        mat4x4_rotate(model, model, 0, direction, 0, M_PI_2 * animationProgress);
+        mat4x4_translate_in_place(model, puzzle->outerSlicePos * -1.5f, 0, 0);
+        renderSlice(shader, puzzle->innerSlice, puzzle->outerSlicePos * -0.5f);
+        renderMiddleSlice(shader, true);
+        renderCell(shader, *cells[right], puzzle->outerSlicePos * 1.5f);
+        renderSlice(shader, puzzle->outerSlice, puzzle->outerSlicePos * 3.5f);
+    } else {
+        mat4x4_translate(model, puzzle->outerSlicePos * -2.5f, 0, 0);
+        mat4x4_rotate(model, model, 0, -direction, 0, M_PI_2);
+        renderCell(shader, *cells[left], 0);
+
+        mat4x4 base;
+        mat4x4_translate(base, puzzle->outerSlicePos * 1.5f, 0, 0);
+        mat4x4_rotate(base, base, 0, direction, 0, M_PI_2);
+        mat4x4_translate_in_place(base, puzzle->outerSlicePos * -1.5f, 0, 0);
+
+        mat4x4_dup(model, base);
+        renderSlice(shader, puzzle->innerSlice, puzzle->outerSlicePos * -0.5f, {-1, 1});
+        renderMiddleSlice(shader, true);
+        renderCell(shader, *cells[right], puzzle->outerSlicePos * 1.5f);
+        renderSlice(shader, puzzle->outerSlice, puzzle->outerSlicePos * 3.5f, {-1, 1});
+
+        float stripZRotation = std::min(1.0f, std::max(0.0f, (animationProgress - 1.0f) * 2));
+        float stripXOffset = std::min(1.0f, std::max(0.0f, (animationProgress - 1.5f) * 2));
+        stripZRotation = M_PI_2 * stripZRotation * puzzle->outerSlicePos;
+        stripXOffset = (stripXOffset + 0.5f) * puzzle->outerSlicePos;
+        int stripFilter = (animationProgress < 2.0f) ? -1 : 1;
+        for (int i = -1; i < 2; i += 2) {
+            mat4x4_dup(model, base);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * -0.5f + stripXOffset, 0, i * 1.5f);
+            mat4x4_rotate(model, model, 0, i, 0, stripZRotation);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * -0.5f, 0, -i * 1.5f);
+            renderSlice(shader, puzzle->innerSlice, 0, {stripFilter, 1 + i});
+            mat4x4_dup(model, base);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * 3.5f - stripXOffset, 0, i * 1.5f);
+            mat4x4_rotate(model, model, 0, i, 0, -stripZRotation);
+            mat4x4_translate_in_place(model, puzzle->outerSlicePos * 0.5f, 0, -i * 1.5f);
+            renderSlice(shader, puzzle->outerSlice, 0, {stripFilter, 1 + i});
+        }
+
+        if (animationProgress > 2.0f) {
+            mat4x4_identity(model);
+            for (int i = -1; i < 2; i += 2) {
+                for (int j = -1; j < 2; j += 2) {
+                    float offsetX = puzzle->outerSlicePos * 1.5f + 2 * direction * j;
+                    float offsetY = i * (1 + sinf(M_PI * (animationProgress - 2.0f)));
+                    float offsetZ = puzzle->outerSlicePos * direction;
+                    float angle = M_PI_2 * smoothstep(animationProgress - 2.0f);
+
+                    Piece piece = puzzle->innerSlice[i + 1][j + 1];
+                    mat4x4_translate(model, offsetX, offsetY, offsetZ);
+                    mat4x4_rotate(model, model, 0, 0, -j, angle);
+                    render3c(shader, {0, 0, 0}, {piece.a, piece.b, piece.c});
+
+                    piece = puzzle->outerSlice[i + 1][j + 1];
+                    mat4x4_translate(model, offsetX, offsetY, -offsetZ);
+                    mat4x4_rotate(model, model, 0, 0, -j, angle);
+                    render3c(shader, {0, 0, 0}, {piece.a, piece.b, piece.c});
                 }
             }
         }
@@ -865,11 +1038,7 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
     }
     if (foundCell) {
         if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-            MoveEntry entry;
-            entry.type = GYRO;
-            entry.animLength = 4.0f;
-            entry.cell = cell;
-            pendingMoves.push(entry);
+            startGyro(cell);
             animating = true;
             return true;
         }
@@ -897,4 +1066,88 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
         return true;
     }
     return false;
+}
+
+void PuzzleRenderer::startGyro(CellLocation cell) {
+    MoveEntry entry;
+    int direction;
+    switch (cell) {
+        case LEFT:
+        case RIGHT:
+            entry.type = GYRO;
+            entry.animLength = 4.0f;
+            entry.cell = cell;
+            pendingMoves.push(entry);
+            break;
+        case UP:
+        case DOWN:
+            if (puzzle->middleSliceDir == FRONT) {
+                entry.type = GYRO_MIDDLE;
+                entry.animLength = 1.0f;
+                entry.location = 0;
+                pendingMoves.push(entry);
+            }
+
+            if (puzzle->middleSlicePos == 0) {
+                direction = puzzle->outerSlicePos;
+            } else if (puzzle->middleSlicePos == 2 * puzzle->outerSlicePos) {
+                direction = -puzzle->outerSlicePos;
+            } else if (puzzle->middleSlicePos == -puzzle->outerSlicePos) {
+                entry.type = GYRO_OUTER;
+                entry.animLength = 2.0f;
+                entry.location = -1 * puzzle->outerSlicePos;
+                pendingMoves.push(entry);
+                direction = 0;
+            } else if (puzzle->middleSlicePos == puzzle->outerSlicePos) {
+                direction = 0;
+            }
+
+            if (direction != 0) {
+                entry.type = GYRO_MIDDLE;
+                entry.animLength = 1.0f;
+                entry.location = direction;
+                pendingMoves.push(entry);
+            }
+
+            entry.type = GYRO;
+            entry.animLength = 3.0f;
+            entry.cell = cell;
+            pendingMoves.push(entry);
+            break;
+        case FRONT:
+        case BACK:
+            if (puzzle->middleSliceDir == UP) {
+                entry.type = GYRO_MIDDLE;
+                entry.animLength = 1.0f;
+                entry.location = 0;
+                pendingMoves.push(entry);
+            }
+
+            if (puzzle->middleSlicePos == 0) {
+                direction = puzzle->outerSlicePos;
+            } else if (puzzle->middleSlicePos == 2 * puzzle->outerSlicePos) {
+                direction = -puzzle->outerSlicePos;
+            } else if (puzzle->middleSlicePos == -puzzle->outerSlicePos) {
+                entry.type = GYRO_OUTER;
+                entry.animLength = 2.0f;
+                entry.location = -1 * puzzle->outerSlicePos;
+                pendingMoves.push(entry);
+                direction = 0;
+            } else if (puzzle->middleSlicePos == puzzle->outerSlicePos) {
+                direction = 0;
+            }
+
+            if (direction != 0) {
+                entry.type = GYRO_MIDDLE;
+                entry.animLength = 1.0f;
+                entry.location = direction;
+                pendingMoves.push(entry);
+            }
+
+            entry.type = GYRO;
+            entry.animLength = 3.0f;
+            entry.cell = cell;
+            pendingMoves.push(entry);
+            break;
+    }
 }
