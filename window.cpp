@@ -41,12 +41,16 @@ Window::Window() {
     camera = new Camera(M_PI_4, 800, 500, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
+    vsync = true;
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
         Window::current->camera->scrollCallback(window, xoffset, yoffset);
     });
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
         Window::current->camera->framebufferSizeCallback(window, width, height);
+    });
+    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        Window::current->keyCallback(window, key, scancode, action, mods);
     });
 }
 
@@ -61,6 +65,7 @@ void Window::run() {
     glPolygonOffset(1.0, 1.0);
     glLineWidth(2);
 
+    glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
         double tick = glfwGetTime();
         double dt = tick - lastTime;
@@ -92,4 +97,27 @@ Window::~Window() {
 
 void Window::close() {
     glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
+void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    static int saved_x;
+    static int saved_y;
+    static int saved_w;
+    static int saved_h;
+    if (action == GLFW_RELEASE) {
+        if ((key == GLFW_KEY_ENTER && mods & GLFW_MOD_ALT) || key == GLFW_KEY_F11) {
+            GLFWmonitor* monitor = glfwGetWindowMonitor(window);
+            if (monitor) {
+                glfwSetWindowMonitor(window, NULL, saved_x, saved_y, saved_w, saved_h, GLFW_DONT_CARE);
+                glfwSwapInterval(0);
+            } else {
+                glfwGetWindowPos(window, &saved_x, &saved_y);
+                glfwGetWindowSize(window, &saved_w, &saved_h);
+                monitor = glfwGetPrimaryMonitor();
+                const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+                glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+                glfwSwapInterval(vsync);
+            }
+        }
+    }
 }

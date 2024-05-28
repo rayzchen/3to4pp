@@ -12,6 +12,7 @@ class Window {
         ~Window();
         void run();
         void close();
+        void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
     private:
         GLFWwindow *window;
@@ -20,6 +21,7 @@ class Window {
         PuzzleRenderer *renderer;
         Puzzle *puzzle;
         double lastTime;
+        bool vsync;
         static Window *current;
 };
 
