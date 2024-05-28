@@ -4,9 +4,9 @@
 #include "constants.h"
 #include "camera.h"
 
-Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
+Camera::Camera(float a_fov, float a_width, float a_height, float a_near, float a_far) {
     fov = a_fov;
-    aspect = a_aspect;
+    aspect = a_width / a_height;
     near = a_near;
     far = a_far;
     mat4x4_perspective(projection, fov, aspect, near, far);
@@ -16,7 +16,10 @@ Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
     zoom = 10.0f;
     recalculate = true;
 
-    sensitivity = 1.5f;
+    width = a_width;
+    height = a_height;
+    sensitivity = 5.0f;
+    deceleration = 5.0f;
     yawVel = 0.0f;
     pitchVel = 0.0f;
 }
@@ -90,14 +93,16 @@ void Camera::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
 void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     Camera *camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
     glViewport(0, 0, width, height);
+    camera->width = width;
+    camera->height = height;
     camera->aspect = (float)width / (float)height;
     mat4x4_perspective(camera->projection, camera->fov, camera->aspect, camera->near, camera->far);
 }
 
 void Camera::updateMouse(GLFWwindow* window, double dt) {
     // std::cout << dt << std::endl;
-    yawVel *= (1.0f - dt * 10);
-    pitchVel *= (1.0f - dt * 10);
+    yawVel *= (1.0f - dt * deceleration);
+    pitchVel *= (1.0f - dt * deceleration);
     setYaw(yaw - yawVel * dt);
     setPitch(pitch - pitchVel * dt);
 
@@ -106,8 +111,8 @@ void Camera::updateMouse(GLFWwindow* window, double dt) {
         double curX, curY;
         glfwGetCursorPos(window, &curX, &curY);
         if (lastX != -1.0f && lastY != -1.0f) {
-            yawVel = (curX - lastX) * sensitivity;
-            pitchVel = (curY - lastY) * sensitivity;
+            yawVel = (curX - lastX) * sensitivity / dt / width;
+            pitchVel = (curY - lastY) * sensitivity / dt / height;
         }
         lastX = curX;
         lastY = curY;

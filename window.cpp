@@ -35,7 +35,7 @@ Window::Window() {
     }
 
     shader = new Shader(Shaders::vertex, Shaders::fragment);
-    camera = new Camera(M_PI_4, 1.6f, 0.02, 50);
+    camera = new Camera(M_PI_4, 800, 500, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
 

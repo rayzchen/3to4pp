@@ -6,7 +6,7 @@
 
 class Camera {
     public:
-        Camera(float fov, float aspect, float near, float far);
+        Camera(float a_fov, float a_width, float a_height, float a_near, float a_far);
         float getYaw();
         void setYaw(float yaw);
         float getPitch();
@@ -22,13 +22,14 @@ class Camera {
 
     private:
         mat4x4 view, projection;
+        float width, height;
         float fov, aspect, near, far;
         float yaw, pitch;
         float zoom;
         void calcViewMat();
         bool recalculate;
 
-        float sensitivity;
+        float sensitivity, deceleration;
         float yawVel, pitchVel;
         float lastX, lastY;
 };
