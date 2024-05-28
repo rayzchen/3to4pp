@@ -1020,7 +1020,7 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
     int cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
                       GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
     bool foundCell = false;
-    CellLocation cell;
+    CellLocation cell = (CellLocation)-1;
     for (int i = 0; i < 8; i++) {
         if (glfwGetKey(window, cellKeys[i])) {
             foundCell = true;
@@ -1029,7 +1029,7 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
     }
     int directionKeys[] = {GLFW_KEY_I, GLFW_KEY_K, GLFW_KEY_J, GLFW_KEY_L, GLFW_KEY_O, GLFW_KEY_U};
     bool foundDirection = false;
-    RotateDirection direction;
+    RotateDirection direction = (RotateDirection)-1;
     for (int i = 0; i < 6; i++) {
         if (glfwGetKey(window, directionKeys[i])) {
             // Move outer layer
@@ -1071,7 +1071,7 @@ bool PuzzleRenderer::checkDirectionalMove(GLFWwindow* window) {
 
 void PuzzleRenderer::startGyro(CellLocation cell) {
     MoveEntry entry;
-    int direction;
+    int direction = 0;
     switch (cell) {
         case LEFT:
         case RIGHT:

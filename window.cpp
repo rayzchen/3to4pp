@@ -1,5 +1,6 @@
-#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 #include <iostream>
 #include <stdlib.h>
 #include <linmath.h>
@@ -54,7 +55,6 @@ void Window::run() {
     glPolygonOffset(1.0, 1.0);
     glLineWidth(2);
 
-    glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window)) {
         double tick = glfwGetTime();
         double dt = tick - lastTime;

@@ -1,5 +1,6 @@
 #include <GLFW/glfw3.h>
 #include <linmath.h>
+#include <iostream>
 #include "constants.h"
 #include "camera.h"
 
@@ -15,7 +16,7 @@ Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {
     zoom = 10.0f;
     recalculate = true;
 
-    sensitivity = 0.6f;
+    sensitivity = 1.5f;
     yawVel = 0.0f;
     pitchVel = 0.0f;
 }
@@ -94,8 +95,9 @@ void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
 }
 
 void Camera::updateMouse(GLFWwindow* window, double dt) {
-    yawVel *= 0.9f;
-    pitchVel *= 0.9f;
+    // std::cout << dt << std::endl;
+    yawVel *= (1.0f - dt * 10);
+    pitchVel *= (1.0f - dt * 10);
     setYaw(yaw - yawVel * dt);
     setPitch(pitch - pitchVel * dt);
 

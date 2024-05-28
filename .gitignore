@@ -1,5 +1,6 @@
 *.[osa]
 3to4
 *.exe
+*.dll
 .vscode/
 include/GLFW/
