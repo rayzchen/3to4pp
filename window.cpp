@@ -7,6 +7,7 @@
 #include "pieces.h"
 #include "puzzle.h"
 #include "shaders.h"
+#include "constants.h"
 
 Window::Window() {
     if (!glfwInit()) {
@@ -43,10 +44,6 @@ Window::Window() {
 }
 
 void Window::run() {
-    PieceMesh *mesh = new PieceMesh(Pieces::mesh2c);
-
-    mat4x4 model;
-    mat4x4_translate(model, 0, 0, 0);
     camera->setPitch(M_PI / 180 * -20);
     camera->setYaw(M_PI / 180 * -20);
 

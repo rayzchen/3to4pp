@@ -1,5 +1,6 @@
 #include <GLFW/glfw3.h>
 #include <linmath.h>
+#include "constants.h"
 #include "camera.h"
 
 Camera::Camera(float a_fov, float a_aspect, float a_near, float a_far) {

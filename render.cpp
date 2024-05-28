@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include "render.h"
+#include "constants.h"
 #include <iostream>
 #include <array>
 #include <algorithm>
@@ -181,11 +182,15 @@ void PuzzleRenderer::render2c(Shader *shader, const std::array<float, 3> pos, co
     mat4x4_scale_pos(model, scale);
 
     switch (dir) {
+        case UP: break;
         case DOWN: mat4x4_rotate(model, model, 1, 0, 0, M_PI); break;
         case RIGHT: mat4x4_rotate(model, model, 0, 0, 1, -M_PI_2); break;
         case LEFT: mat4x4_rotate(model, model, 0, 0, 1, M_PI_2); break;
         case FRONT: mat4x4_rotate(model, model, 1, 0, 0, M_PI_2); break;
         case BACK: mat4x4_rotate(model, model, 1, 0, 0, -M_PI_2); break;
+        case IN:
+        case OUT:
+            return;
     }
 
     shader->setMat4("model", model);
@@ -370,6 +375,9 @@ void PuzzleRenderer::renderPuzzle(Shader *shader) {
             case RIGHT: renderRightAnimation(shader, move.direction); break;
             case IN: renderInnerAnimation(shader, move.direction); break;
             case OUT: renderOuterAnimation(shader, move.direction); break;
+            default:
+                // todo
+                break;
         }
     } else if (pendingMoves.front().type == ROTATE) {
         renderRotateAnimation(shader, pendingMoves.front().direction);
@@ -388,6 +396,8 @@ void PuzzleRenderer::renderPuzzle(Shader *shader) {
             case BACK:
                 renderGyroZAnimation(shader, move.cell);
                 break;
+            default:
+                return;
         }
     } else if (pendingMoves.front().type == GYRO_OUTER) {
         renderOuterGyroAnimation(shader, pendingMoves.front().location);
@@ -871,41 +881,32 @@ void PuzzleRenderer::renderMiddleGyroDirAnimation(Shader *shader) {
     render1c(shader, {offset, 0, -2}, puzzle->backCell[1].a);
 
     float parity = (puzzle->middleSliceDir == UP) ? 1.0f : -1.0f;
-    CellLocation target1 = (puzzle->middleSliceDir == UP) ? BACK : UP;
-    CellLocation target2 = (puzzle->middleSliceDir == UP) ? FRONT : UP;
-    CellLocation target3 = (puzzle->middleSliceDir == UP) ? BACK : DOWN;
-    CellLocation target4 = (puzzle->middleSliceDir == UP) ? FRONT : DOWN;
+    std::array<CellLocation, 8> targets = {DOWN, DOWN, UP, UP, FRONT, BACK, FRONT, BACK};
+    if (puzzle->middleSliceDir == UP) {
+        std::rotate(targets.begin(), targets.begin() + 4, targets.end());
+    }
     if (animationProgress < 0.5f) {
-        float arcY = M_SQRT1_2 * sin(parity * M_PI_4 + M_PI * animationProgress);
-        float arcZ = M_SQRT1_2 * sin(-parity * M_PI_4 + M_PI * animationProgress);
-        mat4x4_translate(model, 0, 1.5 + arcY, 1.5 + arcZ);
-        mat4x4_rotate(model, model, 1, 0, 0, parity * M_PI * animationProgress);
-        render2c(shader, {offset, 0, 0}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, target1);
+        std::array<std::array<Piece, 3>, 3> cells;
+        cells[0] = puzzle->backCell;
+        cells[2] = puzzle->frontCell;
 
-        mat4x4_translate(model, 0, 1.5 + arcY, -1.5 - arcZ);
-        mat4x4_rotate(model, model, 1, 0, 0, -parity * M_PI * animationProgress);
-        render2c(shader, {offset, 0, 0}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, target2);
-
-        mat4x4_translate(model, 0, -1.5 - arcY, 1.5 + arcZ);
-        mat4x4_rotate(model, model, 1, 0, 0, -parity * M_PI * animationProgress);
-        render2c(shader, {offset, 0, 0}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, target3);
-
-        mat4x4_translate(model, 0, -1.5 - arcY, -1.5 - arcZ);
-        mat4x4_rotate(model, model, 1, 0, 0, parity * M_PI * animationProgress);
-        render2c(shader, {offset, 0, 0}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, target4);
-    } else {
-        float glide = -4 * animationProgress * (animationProgress - 1.0f);
-        if (puzzle->middleSliceDir == UP) {
-            render2c(shader, {offset, 1 + glide, 2}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, UP);
-            render2c(shader, {offset, 1 + glide, -2}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, UP);
-            render2c(shader, {offset, -1 - glide, 2}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, DOWN);
-            render2c(shader, {offset, -1 - glide, -2}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, DOWN);
-        } else {
-            render2c(shader, {offset, 2, 1 + glide}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, BACK);
-            render2c(shader, {offset, -2, 1 + glide}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, BACK);
-            render2c(shader, {offset, 2, -1 - glide}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, FRONT);
-            render2c(shader, {offset, -2, -1 - glide}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, FRONT);
+        for (int i = -1; i < 2; i += 2) {
+            for (int j = -1; j < 2; j += 2) {
+                CellLocation target = targets[i + 1 + (j + 1) / 2];
+                mat4x4_translate(model, 0, 1.5 * i, 1.5 * j);
+                mat4x4_rotate(model, model, i * j, 0, 0, parity * M_PI * animationProgress);
+                mat4x4_translate_in_place(model, 0, i * parity * 0.5, j * -parity * 0.5);
+                render2c(shader, {offset, 0, 0}, {cells[j + 1][i + 1].a, cells[j + 1][i + 1].b}, target);
+            }
         }
+    } else {
+        float glide = 1 - 4 * animationProgress * (animationProgress - 1.0f);
+        float glideY = (puzzle->middleSliceDir == UP) ? glide : 2;
+        float glideZ = (puzzle->middleSliceDir != UP) ? glide : 2;
+        render2c(shader, {offset, -glideY, -glideZ}, {puzzle->backCell[0].a, puzzle->backCell[0].b}, targets[4]);
+        render2c(shader, {offset, -glideY, glideZ}, {puzzle->frontCell[0].a, puzzle->frontCell[0].b}, targets[5]);
+        render2c(shader, {offset, glideY, -glideZ}, {puzzle->backCell[2].a, puzzle->backCell[2].b}, targets[6]);
+        render2c(shader, {offset, glideY, glideZ}, {puzzle->frontCell[2].a, puzzle->frontCell[2].b}, targets[7]);
     }
 }
 
@@ -959,7 +960,7 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
         animating = false;
     }
     if (animating) {
-        animationProgress += dt * 4.0f;
+        animationProgress += dt * 1.0f;
         if (animationProgress > pendingMoves.front().animLength) {
             MoveEntry entry = pendingMoves.front();
             pendingMoves.pop();
@@ -1149,5 +1150,8 @@ void PuzzleRenderer::startGyro(CellLocation cell) {
             entry.cell = cell;
             pendingMoves.push(entry);
             break;
+        case IN:
+        case OUT:
+            return;
     }
 }

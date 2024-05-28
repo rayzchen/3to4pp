@@ -50,7 +50,6 @@ void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) 
             for (int k = 0; k < 2; k++) {
                 std::array<int, 3> pos = {2 - i * 2, 2 - j * 2, 2 - k * 2};
                 std::array<Color, 4> colors = {center, faces[2 + j], UNUSED, UNUSED};
-                int orientation = (i + k) + 2*i*(1 - k);
                 int flip = i * 5 + (-2 * i + 1) * ((j + k) % 2 + 2);
                 colors[flip] = faces[i];
                 colors[5 - flip] = faces[4 + k];
@@ -73,7 +72,6 @@ void Puzzle::initSlice(SliceData& slice, Color center, std::array<Color, 4> face
 
     for (int j = 0; j < 2; j++) {
         for (int k = 0; k < 2; k++) {
-            int i = 1;
             std::array<int, 3> pos = {1, 2 - k * 2, 2 - j * 2};
             slice[pos[1]][pos[2]] = {faces[k], center, faces[2 + j], UNUSED};
         }
@@ -128,6 +126,9 @@ void Puzzle::rotateCell(CellLocation cell, RotateDirection direction) {
             } else {
                 rotateCellZ(rightCell, direction);
             }
+            break;
+        default:
+            // todo
             break;
     }
 }
@@ -283,6 +284,9 @@ void Puzzle::gyroCell(CellLocation cell) {
         case BACK:
             gyroCellZ(cell);
             break;
+        case IN:
+        case OUT:
+            return;
     }
 }
 
@@ -346,7 +350,6 @@ void Puzzle::gyroCellY(CellLocation cell) {
     int outer = 1 - inner;
     rotateCellZ(leftCell, (RotateDirection)(4 + inner));
     rotateCellZ(rightCell, (RotateDirection)(4 + outer));
-    Piece temp;
 
     // Cycle center strip
     std::array<Piece*, 3> topPieces = {&backCell[2], &topCell, &frontCell[2]};
@@ -379,7 +382,6 @@ void Puzzle::gyroCellZ(CellLocation cell) {
     int outer = 1 - inner;
     rotateCellY(leftCell, (RotateDirection)(2 + outer));
     rotateCellY(rightCell, (RotateDirection)(2 + inner));
-    Piece temp;
 
     // Cycle center strip
     for (int i = 0; i < 3; i++) {
