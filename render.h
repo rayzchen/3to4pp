@@ -76,6 +76,7 @@ class PuzzleRenderer {
         mat4x4 model;
         std::queue<MoveEntry> pendingMoves;
         bool animating;
+        float animationSpeed;
         float animationProgress;
 
         void renderNoAnimation(Shader *shader);

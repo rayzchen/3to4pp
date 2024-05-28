@@ -16,8 +16,8 @@ class Camera {
         mat4x4* getViewMat();
         mat4x4* getProjection();
 
-        static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-        static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+        void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+        void framebufferSizeCallback(GLFWwindow* window, int width, int height);
         void updateMouse(GLFWwindow* window, double dt);
 
     private:

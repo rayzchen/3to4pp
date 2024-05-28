@@ -20,6 +20,7 @@ class Window {
         PuzzleRenderer *renderer;
         Puzzle *puzzle;
         double lastTime;
+        static Window *current;
 };
 
 #endif // window.h

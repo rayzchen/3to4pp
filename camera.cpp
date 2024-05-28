@@ -81,22 +81,20 @@ void Camera::setZoom(float zoom) {
 }
 
 void Camera::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    Camera *camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
     if (yoffset == 0) {
         return;
     }
-    float zoom = camera->getZoom();
+    float zoom = this->getZoom();
     zoom -= yoffset * 0.5f;
-    camera->setZoom(zoom);
+    this->setZoom(zoom);
 }
 
 void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
-    Camera *camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
     glViewport(0, 0, width, height);
-    camera->width = width;
-    camera->height = height;
-    camera->aspect = (float)width / (float)height;
-    mat4x4_perspective(camera->projection, camera->fov, camera->aspect, camera->near, camera->far);
+    this->width = width;
+    this->height = height;
+    this->aspect = (float)width / (float)height;
+    mat4x4_perspective(this->projection, this->fov, this->aspect, this->near, this->far);
 }
 
 void Camera::updateMouse(GLFWwindow* window, double dt) {

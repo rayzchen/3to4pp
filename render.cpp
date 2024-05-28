@@ -126,6 +126,7 @@ PuzzleRenderer::PuzzleRenderer(Puzzle *puzzle) {
     sensitivity = 0.01f;
     animating = false;
     animationProgress = 0.0f;
+    animationSpeed = 4.0f;
     mat4x4_identity(model);
 
     meshes[0] = new PieceMesh(Pieces::mesh1c);
@@ -960,7 +961,7 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
         animating = false;
     }
     if (animating) {
-        animationProgress += dt * 4.0f;
+        animationProgress += dt * animationSpeed;
         if (animationProgress > pendingMoves.front().animLength) {
             MoveEntry entry = pendingMoves.front();
             pendingMoves.pop();

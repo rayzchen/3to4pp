@@ -10,7 +10,10 @@
 #include "shaders.h"
 #include "constants.h"
 
+Window* Window::current;
+
 Window::Window() {
+    Window::current = this;
     if (!glfwInit()) {
         exit(EXIT_FAILURE);
     }
@@ -39,9 +42,12 @@ Window::Window() {
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
 
-    glfwSetWindowUserPointer(window, camera);
-    glfwSetScrollCallback(window, &Camera::scrollCallback);
-    glfwSetFramebufferSizeCallback(window, &Camera::framebufferSizeCallback);
+    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        Window::current->camera->scrollCallback(window, xoffset, yoffset);
+    });
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+        Window::current->camera->framebufferSizeCallback(window, width, height);
+    });
 }
 
 void Window::run() {
