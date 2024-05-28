@@ -3,4 +3,5 @@ ifeq ($(OS),Windows_NT)
 else
 	CCLIBFLAGS = -lglfw -lGL
 endif
-CPPFLAGS = -DGLEW_NO_GLU -Iinclude
+CPPFLAGS = -Wall -Werror -Iinclude -pedantic
+CXXFLAGS = --std=c++11

@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include "render.h"
 #include "constants.h"
 #include <iostream>
@@ -960,7 +960,7 @@ void PuzzleRenderer::updateAnimations(GLFWwindow *window, double dt) {
         animating = false;
     }
     if (animating) {
-        animationProgress += dt * 1.0f;
+        animationProgress += dt * 4.0f;
         if (animationProgress > pendingMoves.front().animLength) {
             MoveEntry entry = pendingMoves.front();
             pendingMoves.pop();
