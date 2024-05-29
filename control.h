@@ -17,33 +17,30 @@
  *
  **************************************************************************/
 
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef CONTROL_H
+#define CONTROL_H
 
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include "render.h"
-#include "control.h"
-#include "camera.h"
 #include "puzzle.h"
 
-class Window {
-    public:
-        Window();
-        ~Window();
-        void run();
-        void close();
-        void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+class PuzzleController {
+	public:
+		PuzzleController(PuzzleRenderer* renderer);
+		void updatePuzzle(GLFWwindow* window, double dt);
+        bool checkMiddleGyro(GLFWwindow* window);
+        bool checkDirectionalMove(GLFWwindow* window);
+        void startGyro(CellLocation cell);
+        bool checkCellKeys(GLFWwindow* window, CellLocation* cell);
+        bool checkDirectionKeys(GLFWwindow* window, RotateDirection* direction);
 
-    private:
-        GLFWwindow *window;
-        Shader *shader;
-        Camera *camera;
-        PuzzleRenderer *renderer;
-        PuzzleController *controller;
-        Puzzle *puzzle;
-        double lastTime;
-        bool vsync;
-        static Window *current;
+	    static int cellKeys[];
+    	static int directionKeys[];
+
+	private:
+		PuzzleRenderer *renderer;
+		Puzzle *puzzle;
 };
 
-#endif // window.h
+#endif // control.h

@@ -51,6 +51,7 @@ typedef std::array<SliceData, 3> CellData;
 
 class Puzzle {
     friend class PuzzleRenderer;
+    friend class PuzzleController;
     public:
         Puzzle(std::array<Color, 8> scheme = {PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE});
         void save(std::string filename);

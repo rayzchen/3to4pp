@@ -66,6 +66,7 @@ struct MoveEntry {
 
 class PuzzleRenderer {
     public:
+        friend class PuzzleController;
         PuzzleRenderer(Puzzle *puzzle);
         ~PuzzleRenderer();
         float getSpacing();
@@ -80,10 +81,8 @@ class PuzzleRenderer {
         void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ = 0.0f);
 
         void updateMouse(GLFWwindow* window, double dt);
-        void updateAnimations(GLFWwindow *window, double dt);
-        bool checkMiddleGyro(GLFWwindow* window);
-        bool checkDirectionalMove(GLFWwindow* window);
-        void startGyro(CellLocation cell);
+        bool updateAnimations(GLFWwindow *window, double dt, MoveEntry* entry);
+        void scheduleMove(MoveEntry entry);
 
     private:
         Puzzle *puzzle;

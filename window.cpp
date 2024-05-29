@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <linmath.h>
 #include "window.h"
+#include "render.h"
+#include "control.h"
 #include "pieces.h"
 #include "puzzle.h"
 #include "shaders.h"
@@ -60,6 +62,7 @@ Window::Window() {
     camera = new Camera(M_PI_4, 800, 500, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
+    controller = new PuzzleController(renderer);
     vsync = true;
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
@@ -91,7 +94,7 @@ void Window::run() {
         lastTime = tick;
         camera->updateMouse(window, dt);
         renderer->updateMouse(window, dt);
-        renderer->updateAnimations(window, dt);
+        controller->updatePuzzle(window, dt);
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

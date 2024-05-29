@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 11:26:10 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 12:01:37 2024
 #
 
 #
@@ -82,14 +82,14 @@ endif
 ########## End of flags from header.mak
 
 
-CPP_FILES =	3to4++.cpp camera.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
+CPP_FILES =	3to4++.cpp camera.cpp control.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
 C_FILES =	gl.c
 PS_FILES =	
 S_FILES =	
-H_FILES =	camera.h constants.h pieces.h puzzle.h render.h shaders.h window.h
+H_FILES =	camera.h constants.h control.h pieces.h puzzle.h render.h shaders.h window.h
 SOURCEFILES =	$(H_FILES) $(CPP_FILES) $(C_FILES) $(S_FILES)
 .PRECIOUS:	$(SOURCEFILES)
-OBJFILES =	camera.o pieces.o puzzle.o render.o shaders.o window.o gl.o 
+OBJFILES =	camera.o control.o pieces.o puzzle.o render.o shaders.o window.o gl.o 
 
 #
 # Main targets
@@ -104,13 +104,14 @@ all:	3to4++
 # Dependencies
 #
 
-3to4++.o:	camera.h pieces.h puzzle.h render.h window.h
+3to4++.o:	camera.h control.h pieces.h puzzle.h render.h window.h
 camera.o:	camera.h constants.h
+control.o:	control.h pieces.h puzzle.h render.h
 pieces.o:	pieces.h
 puzzle.o:	puzzle.h
 render.o:	constants.h pieces.h puzzle.h render.h
 shaders.o:	shaders.h
-window.o:	camera.h constants.h pieces.h puzzle.h render.h shaders.h window.h
+window.o:	camera.h constants.h control.h pieces.h puzzle.h render.h shaders.h window.h
 gl.o:	
 
 #
