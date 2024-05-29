@@ -30,13 +30,13 @@ void main()
     if (border == 1) {
         FragColor = vec4(vec3(0.0f), 1.0f);
     } else {
-        if (colorIndex == 0.0f) {
+        if (abs(colorIndex - 0.0f) < 0.002f) {
             FragColor = vec4(pieceColors[0], 1.0f);
-        } else if (colorIndex == 1.0f) {
+        } else if (abs(colorIndex - 1.0f) < 0.002f) {
             FragColor = vec4(pieceColors[1], 1.0f);
-        } else if (colorIndex == 2.0f) {
+        } else if (abs(colorIndex - 2.0f) < 0.002f) {
             FragColor = vec4(pieceColors[2], 1.0f);
-        } else if (colorIndex == 3.0f) {
+        } else if (abs(colorIndex - 3.0f) < 0.002f) {
             FragColor = vec4(pieceColors[3], 1.0f);
         }
     }
