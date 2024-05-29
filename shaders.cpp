@@ -23,7 +23,7 @@ const char *Shaders::modelVertex = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in float aColIdx;
-out flat float colorIndex;
+out float colorIndex;
 out vec3 meshPos;
 
 uniform mat4 model;
@@ -41,7 +41,7 @@ void main()
 const char *Shaders::modelFragment = R"(
 #version 330 core
 #define MAX_TRIANGLES 36
-in flat float colorIndex;
+in float colorIndex;
 in vec3 meshPos;
 out vec4 FragColor;
 
