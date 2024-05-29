@@ -1,10 +1,11 @@
+CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
+CXXFLAGS = --std=c++11
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lfreetype -lglfw3 -lopengl32 -lgdi32
 else
 	CCLIBFLAGS = -Llib -lfreetype -lglfw -lGL
+	CPPFLAGS += -I/usr/include/freetype2/
 endif
-CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
-CXXFLAGS = --std=c++11
 
 ifeq ($(MAKECMDGOALS),build)
 	CXXFLAGS += -s -Ofast -DNDEBUG

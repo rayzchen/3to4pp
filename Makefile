@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 18:08:12 2024
+# Created by gmakemake (Ubuntu May 16 2024) on Wed May 29 21:54:53 2024
 #
 
 #
@@ -43,13 +43,14 @@ COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c
 CPP = $(CPP) $(CPPFLAGS)
 ########## Flags from header.mak
 
+CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
+CXXFLAGS = --std=c++11
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lfreetype -lglfw3 -lopengl32 -lgdi32
 else
 	CCLIBFLAGS = -Llib -lfreetype -lglfw -lGL
+	CPPFLAGS += -I/usr/include/freetype2/
 endif
-CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
-CXXFLAGS = --std=c++11
 
 ifeq ($(MAKECMDGOALS),build)
 	CXXFLAGS += -s -Ofast -DNDEBUG
