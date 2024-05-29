@@ -22,6 +22,7 @@
 #include "constants.h"
 #include <iostream>
 #include <array>
+#include <string>
 #include <algorithm>
 
 void mat4x4_scale_pos(mat4x4 M, float k) {
@@ -122,23 +123,23 @@ void Shader::use() {
     glUseProgram(program);
 }
 
-void Shader::setInt(const char *loc, int value) {
-    int shaderLocation = glGetUniformLocation(program, loc);
+void Shader::setInt(std::string loc, int value) {
+    int shaderLocation = glGetUniformLocation(program, loc.c_str());
     glUniform1i(shaderLocation, value);
 }
 
-void Shader::setVec3(const char *loc, vec3 vector) {
-    int shaderLocation = glGetUniformLocation(program, loc);
+void Shader::setVec3(std::string loc, vec3 vector) {
+    int shaderLocation = glGetUniformLocation(program, loc.c_str());
     glUniform3fv(shaderLocation, 1, vector);
 }
 
-void Shader::setMat4(const char *loc, mat4x4 matrix) {
-    int shaderLocation = glGetUniformLocation(program, loc);
+void Shader::setMat4(std::string loc, mat4x4 matrix) {
+    int shaderLocation = glGetUniformLocation(program, loc.c_str());
     glUniformMatrix4fv(shaderLocation, 1, GL_FALSE, matrix[0]);
 }
 
-void Shader::setVec3v(const char *loc, std::vector<float> vectors) {
-    int shaderLocation = glGetUniformLocation(program, loc);
+void Shader::setVec3v(std::string loc, std::vector<float> vectors) {
+    int shaderLocation = glGetUniformLocation(program, loc.c_str());
     glUniform3fv(shaderLocation, vectors.size() / 3, vectors.data());
 }
 

@@ -34,10 +34,10 @@ class Shader {
         Shader(const char *vertex, const char *fragment);
         ~Shader();
         void use();
-        void setInt(const char *loc, int value);
-        void setVec3(const char *loc, vec3 vector);
-        void setMat4(const char *loc, mat4x4 matrix);
-        void setVec3v(const char *loc, std::vector<float> vectors);
+        void setInt(std::string loc, int value);
+        void setVec3(std::string loc, vec3 vector);
+        void setMat4(std::string loc, mat4x4 matrix);
+        void setVec3v(std::string loc, std::vector<float> vectors);
 
     private:
         unsigned int program;
