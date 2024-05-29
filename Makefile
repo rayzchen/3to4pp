@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Tue May 28 17:25:32 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 10:27:41 2024
 #
 
 #
@@ -44,9 +44,9 @@ CPP = $(CPP) $(CPPFLAGS)
 ########## Flags from header.mak
 
 ifeq ($(OS),Windows_NT)
-	CCLIBFLAGS = -lglfw3 -lopengl32 -lgdi32
+	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32
 else
-	CCLIBFLAGS = -lglfw -lGL
+	CCLIBFLAGS = -Llib -lglfw -lGL
 endif
 CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
 CXXFLAGS = --std=c++11
@@ -67,13 +67,16 @@ ifeq ($(MAKECMDGOALS),shared)
 	endif
 endif
 
-all:	3to4
+all: 3to4
 build:	clean all
 shared: build
 	rm -rf dist
 	mkdir dist
 	cp 3to4 dist
+ifeq ($(OS),Windows_NT)
 	ldd 3to4 | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
+	ls lib/*.dll | xargs -I {} cp {} dist
+endif
 
 ########## End of flags from header.mak
 

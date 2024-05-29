@@ -1,7 +1,7 @@
 ifeq ($(OS),Windows_NT)
-	CCLIBFLAGS = -lglfw3 -lopengl32 -lgdi32
+	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32
 else
-	CCLIBFLAGS = -lglfw -lGL
+	CCLIBFLAGS = -Llib -lglfw -lGL
 endif
 CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
 CXXFLAGS = --std=c++11
@@ -28,4 +28,7 @@ shared: build
 	rm -rf dist
 	mkdir dist
 	cp 3to4 dist
+ifeq ($(OS),Windows_NT)
 	ldd 3to4 | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
+	ls lib/*.dll | xargs -I {} cp {} dist
+endif
