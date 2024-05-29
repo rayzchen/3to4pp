@@ -37,6 +37,7 @@ float smoothstep(float t) {
 PieceMesh::PieceMesh(PieceType type) {
     length1 = type.triangles.size();
     length2 = type.edges.size();
+    normals = type.normals;
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &faceVao);
     glGenVertexArrays(1, &edgeVao);
@@ -66,7 +67,8 @@ PieceMesh::PieceMesh(PieceType type) {
     glEnableVertexAttribArray(1);
 }
 
-void PieceMesh::renderFaces() {
+void PieceMesh::renderFaces(Shader* shader) {
+    shader->setVec3v("normals", normals);
     glBindVertexArray(faceVao);
     glDrawElements(GL_TRIANGLES, length1, GL_UNSIGNED_INT, 0);
 }
@@ -135,6 +137,11 @@ void Shader::setMat4(const char *loc, mat4x4 matrix) {
     glUniformMatrix4fv(shaderLocation, 1, GL_FALSE, matrix[0]);
 }
 
+void Shader::setVec3v(const char *loc, std::vector<float> vectors) {
+    int shaderLocation = glGetUniformLocation(program, loc);
+    glUniform3fv(shaderLocation, vectors.size() / 3, vectors.data());
+}
+
 Shader::~Shader() {
     glDeleteProgram(program);
 }
@@ -185,7 +192,7 @@ void PuzzleRenderer::render1c(Shader *shader, const std::array<float, 3> pos, Co
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
-    meshes[0]->renderFaces();
+    meshes[0]->renderFaces(shader);
     shader->setInt("border", 1);
     meshes[0]->renderEdges();
 }
@@ -216,7 +223,7 @@ void PuzzleRenderer::render2c(Shader *shader, const std::array<float, 3> pos, co
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
-    meshes[1]->renderFaces();
+    meshes[1]->renderFaces(shader);
     shader->setInt("border", 1);
     meshes[1]->renderEdges();
 }
@@ -235,7 +242,7 @@ void PuzzleRenderer::render3c(Shader *shader, const std::array<float, 3> pos, co
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
-    meshes[2]->renderFaces();
+    meshes[2]->renderFaces(shader);
     shader->setInt("border", 1);
     meshes[2]->renderEdges();
 }
@@ -262,7 +269,7 @@ void PuzzleRenderer::render4c(Shader *shader, const std::array<float, 3> pos, co
     shader->setMat4("model", model);
 
     shader->setInt("border", 0);
-    meshes[3]->renderFaces();
+    meshes[3]->renderFaces(shader);
     shader->setInt("border", 1);
     meshes[3]->renderEdges();
 }

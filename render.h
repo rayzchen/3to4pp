@@ -25,19 +25,9 @@
 #include <linmath.h>
 #include <queue>
 #include <array>
+#include <vector>
 #include "pieces.h"
 #include "puzzle.h"
-
-class PieceMesh {
-    public:
-        PieceMesh(PieceType type);
-        void renderFaces();
-        void renderEdges();
-
-    private:
-        unsigned int vbo, faceVao, edgeVao, faceEbo, edgeEbo;
-        unsigned int length1, length2;
-};
 
 class Shader {
     public:
@@ -47,9 +37,22 @@ class Shader {
         void setInt(const char *loc, int value);
         void setVec3(const char *loc, vec3 vector);
         void setMat4(const char *loc, mat4x4 matrix);
+        void setVec3v(const char *loc, std::vector<float> vectors);
 
     private:
         unsigned int program;
+};
+
+class PieceMesh {
+    public:
+        PieceMesh(PieceType type);
+        void renderFaces(Shader* shader);
+        void renderEdges();
+
+    private:
+        unsigned int vbo, faceVao, edgeVao, faceEbo, edgeEbo;
+        unsigned int length1, length2;
+        std::vector<float> normals;
 };
 
 typedef enum {

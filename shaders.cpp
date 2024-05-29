@@ -23,7 +23,7 @@ const char *Shaders::vertex = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in float aColIdx;
-out float colorIndex;
+out flat float colorIndex;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -38,26 +38,42 @@ void main()
 
 const char *Shaders::fragment = R"(
 #version 330 core
-in float colorIndex;
+#define MAX_TRIANGLES 36
+in flat float colorIndex;
 out vec4 FragColor;
 
+uniform mat4 model;
 uniform int border;
 uniform vec3 pieceColors[4];
+uniform vec3[MAX_TRIANGLES] normals;
+uniform vec3 lightDir = vec3(-0.3f, -0.7f, -0.5f);
+uniform vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
 
 void main()
 {
     if (border == 1) {
         FragColor = vec4(vec3(0.0f), 1.0f);
     } else {
+        vec3 objectColor;
         if (abs(colorIndex - 0.0f) < 0.002f) {
-            FragColor = vec4(pieceColors[0], 1.0f);
+            objectColor = pieceColors[0];
         } else if (abs(colorIndex - 1.0f) < 0.002f) {
-            FragColor = vec4(pieceColors[1], 1.0f);
+            objectColor = pieceColors[1];
         } else if (abs(colorIndex - 2.0f) < 0.002f) {
-            FragColor = vec4(pieceColors[2], 1.0f);
+            objectColor = pieceColors[2];
         } else if (abs(colorIndex - 3.0f) < 0.002f) {
-            FragColor = vec4(pieceColors[3], 1.0f);
+            objectColor = pieceColors[3];
         }
+
+        float ambientStrength = 0.8;
+        vec3 ambient = ambientStrength * lightColor;
+
+        vec3 normal = mat3(model) * normals[gl_PrimitiveID];
+        float diff = max(dot(normal, normalize(-lightDir)), 0.0);
+        vec3 diffuse = diff * lightColor;
+
+        vec3 result = (ambient + diffuse * 0.5) * objectColor;
+        FragColor = vec4(result, 1.0);
     }
 }
 )";

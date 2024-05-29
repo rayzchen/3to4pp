@@ -451,6 +451,10 @@ void Puzzle::gyroMiddleSlice(int direction) {
     }
 }
 
+bool Puzzle::canRotatePuzzle(RotateDirection direction) {
+    return direction == YZ || direction == ZY;
+}
+
 void Puzzle::rotatePuzzle(RotateDirection direction) {
     rotateCellX(leftCell, direction);
     rotateCellX(rightCell, direction);

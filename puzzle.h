@@ -62,6 +62,7 @@ class Puzzle {
         void gyroOuterSlice();
         bool canGyroMiddle(int direction);
         void gyroMiddleSlice(int direction);
+        bool canRotatePuzzle(RotateDirection direction);
         void rotatePuzzle(RotateDirection direction);
 
     private:

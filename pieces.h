@@ -27,6 +27,7 @@ typedef struct {
     std::vector<float> vertices;
     std::vector<unsigned int> triangles;
     std::vector<unsigned int> edges;
+    std::vector<float> normals;
 } PieceType;
 
 class Pieces {

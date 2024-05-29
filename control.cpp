@@ -121,14 +121,16 @@ bool PuzzleController::checkDirectionalMove(GLFWwindow* window) {
                 return true;
             }
         }
-    } else if (checkDirectionKeys(window, &direction) && (direction == YZ || direction == ZY)) {
-        // whole puzzle rotation
-        MoveEntry entry;
-        entry.type = ROTATE;
-        entry.animLength = 1.0f;
-        entry.direction = direction;
-        renderer->scheduleMove(entry);
-        return true;
+    } else if (checkDirectionKeys(window, &direction)) {
+        if (puzzle->canRotatePuzzle(direction)) {
+            // whole puzzle rotation
+            MoveEntry entry;
+            entry.type = ROTATE;
+            entry.animLength = 1.0f;
+            entry.direction = direction;
+            renderer->scheduleMove(entry);
+            return true;
+        }
     }
     return false;
 }
