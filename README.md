@@ -1,4 +1,4 @@
-# 3to4
+# 3to4++
 
 A virtual simulator for the [physical 3x3x3x3 design](https://hypercubing.xyz/puzzles/physical/3x3x3x3/) by Grant S.
 Written with [GLFW](https://www.glfw.org/), [OpenGL](https://www.opengl.org/) and [C++](https://isocpp.org/).
@@ -11,7 +11,7 @@ On Linux, install a C++ compiler, `make`, the required GLFW and OpenGL dev packa
 Then run
 ```
 $ make
-$ ./3to4
+$ ./3to4++
 ```
 to compile and run.
 
@@ -20,5 +20,5 @@ On Windows, install [MinGW](https://www.mingw-w64.org/) or [Cygwin](https://www.
 Finally run
 ```
 > make
-> 3to4.exe
+> 3to4++.exe
 ```

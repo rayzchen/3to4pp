@@ -1,5 +1,5 @@
 /**************************************************************************
- * 3to4 - https://github.com/rayzchen/3to4
+ * 3to4++ - https://github.com/rayzchen/3to4++
  *-------------------------------------------------------------------------
  * Copyright 2024 Ray Chen
  *
@@ -46,7 +46,7 @@ Window::Window() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    window = glfwCreateWindow(800, 500, "3x3x3x3", NULL, NULL);
+    window = glfwCreateWindow(800, 500, "3x3x3x3 (3to4++)", NULL, NULL);
     if (!window) {
         exit(EXIT_FAILURE);
     }

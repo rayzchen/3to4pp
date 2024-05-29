@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 11:04:28 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 11:26:10 2024
 #
 
 #
@@ -67,22 +67,22 @@ ifeq ($(MAKECMDGOALS),shared)
 	endif
 endif
 
-all:	3to4
+all:	3to4++
 build:	clean all
 shared: build
 	rm -rf dist
 	mkdir dist
-	cp 3to4 dist
+	cp 3to4++ dist
 	cp LICENSE dist
 ifeq ($(OS),Windows_NT)
-	ldd 3to4 | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
+	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
 	ls lib/*.dll | xargs -I {} cp {} dist
 endif
 
 ########## End of flags from header.mak
 
 
-CPP_FILES =	3to4.cpp camera.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
+CPP_FILES =	3to4++.cpp camera.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
 C_FILES =	gl.c
 PS_FILES =	
 S_FILES =	
@@ -95,16 +95,16 @@ OBJFILES =	camera.o pieces.o puzzle.o render.o shaders.o window.o gl.o
 # Main targets
 #
 
-all:	3to4 
+all:	3to4++ 
 
-3to4:	3to4.o $(OBJFILES)
-	$(CXX) $(CXXFLAGS) -o 3to4 3to4.o $(OBJFILES) $(CCLIBFLAGS)
+3to4++:	3to4++.o $(OBJFILES)
+	$(CXX) $(CXXFLAGS) -o 3to4++ 3to4++.o $(OBJFILES) $(CCLIBFLAGS)
 
 #
 # Dependencies
 #
 
-3to4.o:	camera.h pieces.h puzzle.h render.h window.h
+3to4++.o:	camera.h pieces.h puzzle.h render.h window.h
 camera.o:	camera.h constants.h
 pieces.o:	pieces.h
 puzzle.o:	puzzle.h
@@ -123,7 +123,7 @@ archive.tgz:	$(SOURCEFILES) Makefile
 	tar cf - $(SOURCEFILES) Makefile | gzip > archive.tgz
 
 clean:
-	-/bin/rm -f $(OBJFILES) 3to4.o core
+	-/bin/rm -f $(OBJFILES) 3to4++.o core
 
 realclean:        clean
-	-/bin/rm -f 3to4 
+	-/bin/rm -f 3to4++ 
