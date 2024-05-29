@@ -28,6 +28,7 @@ shared: build
 	rm -rf dist
 	mkdir dist
 	cp 3to4 dist
+	cp LICENSE dist
 ifeq ($(OS),Windows_NT)
 	ldd 3to4 | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
 	ls lib/*.dll | xargs -I {} cp {} dist

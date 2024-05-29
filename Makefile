@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 10:27:41 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Wed May 29 11:04:28 2024
 #
 
 #
@@ -67,12 +67,13 @@ ifeq ($(MAKECMDGOALS),shared)
 	endif
 endif
 
-all: 3to4
+all:	3to4
 build:	clean all
 shared: build
 	rm -rf dist
 	mkdir dist
 	cp 3to4 dist
+	cp LICENSE dist
 ifeq ($(OS),Windows_NT)
 	ldd 3to4 | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
 	ls lib/*.dll | xargs -I {} cp {} dist
