@@ -28,6 +28,7 @@
 #include "control.h"
 #include "pieces.h"
 #include "puzzle.h"
+#include "gui.h"
 #include "shaders.h"
 #include "constants.h"
 
@@ -58,10 +59,12 @@ Window::Window() {
         exit(EXIT_FAILURE);
     }
 
-    shader = new Shader(Shaders::vertex, Shaders::fragment);
+    modelShader = new Shader(Shaders::modelVertex, Shaders::modelFragment);
+    guiShader = new Shader(Shaders::guiVertex, Shaders::guiFragment);
     camera = new Camera(M_PI_4, 800, 500, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
+    gui = new GuiRenderer(800, 500);
     controller = new PuzzleController(renderer);
     vsync = true;
 
@@ -70,6 +73,7 @@ Window::Window() {
     });
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
         Window::current->camera->framebufferSizeCallback(window, width, height);
+        Window::current->gui->framebufferSizeCallback(window, width, height);
     });
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
@@ -98,10 +102,12 @@ void Window::run() {
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shader->use();
-        shader->setMat4("view", *camera->getViewMat());
-        shader->setMat4("projection", *camera->getProjection());
-        renderer->renderPuzzle(shader);
+        modelShader->use();
+        modelShader->setMat4("view", *camera->getViewMat());
+        modelShader->setMat4("projection", *camera->getProjection());
+        renderer->renderPuzzle(modelShader);
+
+        gui->renderGui(guiShader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -109,7 +115,7 @@ void Window::run() {
 }
 
 Window::~Window() {
-    delete shader;
+    delete modelShader;
     delete camera;
     delete renderer;
     delete puzzle;
@@ -140,6 +146,8 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
                 glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
                 glfwSwapInterval(vsync);
             }
+        } else if (key == GLFW_KEY_H) {
+            gui->toggleHelp();
         }
     }
 }

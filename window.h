@@ -25,6 +25,7 @@
 #include "control.h"
 #include "camera.h"
 #include "puzzle.h"
+#include "gui.h"
 
 class Window {
     public:
@@ -36,9 +37,10 @@ class Window {
 
     private:
         GLFWwindow *window;
-        Shader *shader;
+        Shader *modelShader, *guiShader;
         Camera *camera;
         PuzzleRenderer *renderer;
+        GuiRenderer *gui;
         PuzzleController *controller;
         Puzzle *puzzle;
         double lastTime;

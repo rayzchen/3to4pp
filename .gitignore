@@ -3,4 +3,7 @@
 *.exe
 *.dll
 .vscode/
+dist/
 include/GLFW/
+include/freetype/
+include/ft2build.h

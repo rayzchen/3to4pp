@@ -17,13 +17,42 @@
  *
  **************************************************************************/
 
-#ifndef SHADERS_H
-#define SHADERS_H
+#ifndef GUI_H
+#define GUI_H
 
-class Shaders {
-    public:
-        static const char *modelVertex, *modelFragment;
-        static const char *guiVertex, *guiFragment;
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#include <map>
+#include "render.h"
+
+typedef struct {
+    unsigned int texture;
+    unsigned int size[2];
+    int bearing[2];
+    long int advance;
+} GlyphInfo;
+
+class GuiRenderer {
+	public:
+		static const char *fontFile;
+		static std::vector<std::string> helpText;
+		static std::string helpHint;
+		GuiRenderer(int width, int height);
+		void renderText(Shader *shader, std::string text, float x, float y, float scale);
+		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+		int getTextWidth(std::string text, float scale);
+		void renderGui(Shader *shader);
+		void toggleHelp();
+
+	private:
+		mat4x4 projection;
+		unsigned int vao, vbo;
+		std::map<char, GlyphInfo> glyphs;
+		int lineHeight;
+		int width, height;
+		bool showHelp;
+
+		void initGlyphs();
 };
 
-#endif // shaders.h
+#endif // gui.h
