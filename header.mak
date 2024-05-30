@@ -25,7 +25,14 @@ ifeq ($(MAKECMDGOALS),shared)
 	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 endif
 
-all:	3to4++
+all:	3to4++ addicon
+ifeq ($(OS),Windows_NT)
+resources.o: resources.rc icons/icons.ico
+	windres resources.rc -o resources.o
+addicon: resources.o
+	$(CXX) $(CXXFLAGS) -o 3to4++ 3to4++.o resources.o $(OBJFILES) $(CCLIBFLAGS)
+endif
+
 build:	clean all
 shared: build
 	rm -rf dist

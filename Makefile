@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Thu May 30 11:26:27 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Thu May 30 18:21:08 2024
 #
 
 #
@@ -70,7 +70,14 @@ ifeq ($(MAKECMDGOALS),shared)
 	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 endif
 
-all:	3to4++
+all:	3to4++ addicon
+ifeq ($(OS),Windows_NT)
+resources.o: resources.rc
+	windres resources.rc -o resources.o
+addicon: resources.o
+	$(CXX) $(CXXFLAGS) -o 3to4++ 3to4++.o resources.o $(OBJFILES) $(CCLIBFLAGS)
+endif
+
 build:	clean all
 shared: build
 	rm -rf dist
@@ -110,7 +117,7 @@ all:	3to4++
 3to4++.o:	camera.h control.h gui.h pieces.h puzzle.h render.h window.h
 camera.o:	camera.h constants.h
 control.o:	control.h pieces.h puzzle.h render.h
-gui.o:	gui.h pieces.h puzzle.h render.h
+gui.o:	control.h gui.h pieces.h puzzle.h render.h
 pieces.o:	pieces.h
 puzzle.o:	puzzle.h
 render.o:	constants.h pieces.h puzzle.h render.h

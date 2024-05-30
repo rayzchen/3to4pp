@@ -31,6 +31,11 @@
 #include "gui.h"
 #include "shaders.h"
 #include "constants.h"
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <windows.h>
+#endif
 
 #define WIDTH 800
 #define HEIGHT 500
@@ -56,6 +61,14 @@ Window::Window() {
     if (!window) {
         exit(EXIT_FAILURE);
     }
+
+#ifdef _WIN32
+    SetClassLongPtr(
+        glfwGetWin32Window(window),
+        GCLP_HICON,
+        (LONG_PTR)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(100))
+    );
+#endif
 
     glfwMakeContextCurrent(window);
     if (!gladLoadGL(glfwGetProcAddress)) {
