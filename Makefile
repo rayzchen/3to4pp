@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 16 2024) on Wed May 29 21:54:53 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Thu May 30 11:26:27 2024
 #
 
 #
@@ -64,8 +64,10 @@ ifeq ($(MAKECMDGOALS),shared)
 	CXXFLAGS += -s -Ofast -DNDEBUG
 	ifeq ($(OS),Windows_NT)
 		CCLIBFLAGS += -lglfw3dll
-		CXXFLAGS += -mwindows -DGLFW_DLL
+		CXXFLAGS += -mwindows -DGLFW_DLL -DDLL_IMPORT
+		CCLIBFLAGS += lib/*.dll
 	endif
+	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 endif
 
 all:	3to4++
@@ -77,7 +79,7 @@ shared: build
 	cp LICENSE dist
 ifeq ($(OS),Windows_NT)
 	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
-	ls lib/*.dll | xargs -I {} cp {} dist
+	cp lib/*.dll dist
 endif
 
 ########## End of flags from header.mak
