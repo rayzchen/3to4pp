@@ -147,7 +147,7 @@ void Puzzle::rotateCell(CellLocation cell, RotateDirection direction) {
             }
             break;
         default:
-            // todo
+            rotatePSliceCell(cell);
             break;
     }
 }
@@ -286,6 +286,42 @@ void Puzzle::rotateCellZ(CellData& cell, RotateDirection direction) {
                 corners[i]->c = tempcol;
             }
         }
+    }
+}
+
+void Puzzle::rotatePSliceCell(CellLocation cell) {
+    int side;
+    switch (cell) {
+        case FRONT:
+        case BACK:
+            side = 1 - (int)cell % 2 * 2;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    std::swap(leftCell[i][j][1 + side], rightCell[2 - i][2 - j][1 + side]);
+                }
+            }
+            std::swap(innerSlice[0][1 + side], innerSlice[2][1 + side]);
+            std::swap(outerSlice[0][1 + side], outerSlice[2][1 + side]);
+            if (cell == FRONT) {
+                std::swap(frontCell[0], frontCell[2]);
+            } else {
+                std::swap(backCell[0], backCell[2]);
+            }
+            break;
+        case UP:
+        case DOWN:
+            side = 1 - (int)cell % 2 * 2;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    std::swap(leftCell[i][1 + side][j], rightCell[2 - i][1 + side][2 - j]);
+                }
+            }
+            std::swap(innerSlice[1 + side][0], innerSlice[1 + side][2]);
+            std::swap(outerSlice[1 + side][0], outerSlice[1 + side][2]);
+            std::swap(frontCell[1 + side], backCell[1 + side]);
+            break;
+        default:
+            return;
     }
 }
 

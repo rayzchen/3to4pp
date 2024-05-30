@@ -112,12 +112,7 @@ bool PuzzleController::checkDirectionalMove(GLFWwindow* window) {
 
         if (checkDirectionKeys(window, &direction)) {
             if (puzzle->canRotateCell(cell, direction)) {
-                MoveEntry entry;
-                entry.type = TURN;
-                entry.animLength = 1.0f;
-                entry.cell = cell;
-                entry.direction = direction;
-                renderer->scheduleMove(entry);
+                startCellMove(cell, direction);
                 return true;
             }
         }
@@ -220,4 +215,32 @@ void PuzzleController::startGyro(CellLocation cell) {
         case OUT:
             return;
     }
+}
+
+void PuzzleController::startCellMove(CellLocation cell, RotateDirection direction) {
+    MoveEntry entry;
+    if ((cell == UP || cell == DOWN) && puzzle->middleSliceDir == FRONT) {
+        entry.type = GYRO_MIDDLE;
+        entry.animLength = 1.0f;
+        entry.location = 0;
+        renderer->scheduleMove(entry);
+    } else if ((cell == FRONT || cell == BACK) && puzzle->middleSliceDir == UP) {
+        entry.type = GYRO_MIDDLE;
+        entry.animLength = 1.0f;
+        entry.location = 0;
+        renderer->scheduleMove(entry);
+    }
+
+    float length;
+    if (cell == UP || cell == DOWN || cell == FRONT || cell == BACK) {
+        length = 2.0f;
+    } else {
+        length = 1.0f;
+    }
+
+    entry.type = TURN;
+    entry.animLength = length;
+    entry.cell = cell;
+    entry.direction = direction;
+    renderer->scheduleMove(entry);
 }

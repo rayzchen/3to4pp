@@ -92,6 +92,7 @@ class Puzzle {
         void rotateCellX(CellData& cell, RotateDirection direction);
         void rotateCellY(CellData& cell, RotateDirection direction);
         void rotateCellZ(CellData& cell, RotateDirection direction);
+        void rotatePSliceCell(CellLocation cell);
         void gyroCellX(CellLocation cell);
         void gyroCellY(CellLocation cell);
         void gyroCellZ(CellLocation cell);

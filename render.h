@@ -81,7 +81,7 @@ class PuzzleRenderer {
         void renderPuzzle(Shader *shader);
         void renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset, std::array<int, 3> sliceFilter = {-1, -1, -1});
         void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset, std::array<int, 2> stripFilter = {-1, -1});
-        void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ = 0.0f);
+        void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ, CellLocation filter = (CellLocation)-1);
 
         void updateMouse(GLFWwindow* window, double dt);
         bool updateAnimations(GLFWwindow *window, double dt, MoveEntry* entry);
@@ -105,14 +105,16 @@ class PuzzleRenderer {
         void renderRightAnimation(Shader *shader, RotateDirection direction);
         void renderInnerAnimation(Shader *shader, RotateDirection direction);
         void renderOuterAnimation(Shader *shader, RotateDirection direction);
+        void renderFrontBackAnimation(Shader *shader, CellLocation cell, RotateDirection direction);
+        void renderUpDownAnimation(Shader *shader, CellLocation cell, RotateDirection direction);
         void renderRotateAnimation(Shader *shader, RotateDirection direction);
         void renderGyroXAnimation(Shader *shader, CellLocation cell);
         void renderGyroYAnimation(Shader *shader, CellLocation cell);
         void renderGyroZAnimation(Shader *shader, CellLocation cell);
-        void renderOuterGyroAnimation(Shader *Shader, int location);
-        void renderMiddleGyroAnimation(Shader *Shader, int direction);
-        void renderMiddleGyroPosAnimation(Shader *Shader, int direction);
-        void renderMiddleGyroDirAnimation(Shader *Shader);
+        void renderOuterGyroAnimation(Shader *shader, int location);
+        void renderPGyroAnimation(Shader *shader, int direction);
+        void renderPGyroPosAnimation(Shader *shader, int direction);
+        void renderPGyroDirAnimation(Shader *shader);
 };
 
 #endif // render.h

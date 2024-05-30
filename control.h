@@ -34,6 +34,7 @@ class PuzzleController {
         void startGyro(CellLocation cell);
         bool checkCellKeys(GLFWwindow* window, CellLocation* cell);
         bool checkDirectionKeys(GLFWwindow* window, RotateDirection* direction);
+        void startCellMove(CellLocation cell, RotateDirection direction);
 
 	    static int cellKeys[];
     	static int directionKeys[];
