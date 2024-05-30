@@ -18,12 +18,14 @@
  **************************************************************************/
 
 #include <iostream>
+#include <sstream>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <linmath.h>
 #include <glad/gl.h>
 #include <cstdlib>
 #include "gui.h"
+#include "control.h"
 
 #ifdef _WIN32
 const char* GuiRenderer::fontFile = "C:\\Windows\\Fonts\\segoeui.ttf";
@@ -45,9 +47,10 @@ std::vector<std::string> GuiRenderer::helpText = {
 	"SPACE - Gyro (Selected > I)",
 	"M, COMMA, PERIOD - Move Outer Parts",
 };
-std::string GuiRenderer::helpHint = "Help: H";
 
-GuiRenderer::GuiRenderer(int width, int height) {
+GuiRenderer::GuiRenderer(PuzzleController *controller, int width, int height) {
+	this->controller = controller;
+	this->history = controller->history;
 	this->width = width;
 	this->height = height;
 	showHelp = false;
@@ -67,7 +70,7 @@ void GuiRenderer::initGlyphs() {
 	    std::cout << "Failed to load font" << std::endl;
         exit(EXIT_FAILURE);
 	}
-	FT_Set_Char_Size(face, 0, 14*64, 96, 96);
+	FT_Set_Char_Size(face, 0, 13*64, 96, 96);
 	lineHeight = face->size->metrics.height >> 6;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -177,15 +180,27 @@ void GuiRenderer::renderGui(Shader *shader) {
 	if (showHelp) {
 		int textWidth = getTextWidth(helpText[10], 1);
 		for (size_t i = 0; i < helpText.size(); i++) {
-			float x = width - 10 - textWidth;
-			float y = height - 25 - i * lineHeight;
-			if (i == 0) x = width - 10 - (textWidth + getTextWidth(helpText[i], 1)) / 2;
+			float x = width - 5 - textWidth;
+			float y = height - (i + 1) * lineHeight;
+			if (i == 0) x = width - 5 - (textWidth + getTextWidth(helpText[i], 1)) / 2;
 			renderText(shader, helpText[i], x, y, 1);
 		}
 	}
 
+	std::string helpHint = "Help: H";
 	int textWidth = getTextWidth(helpHint, 1);
-	renderText(shader, helpHint, width - 10 - textWidth, 10, 1);
+	renderText(shader, helpHint, width - 5 - textWidth, 10, 1);
+
+	std::ostringstream stream;
+	stream << "Turn Count: " << history->getTurnCount();
+	textWidth = getTextWidth(stream.str(), 1);
+	renderText(shader, stream.str(), (width - textWidth) / 2, height - lineHeight, 1);
+
+	std::string status = controller->getHistoryStatus();
+	if (!status.empty()) {
+		textWidth = getTextWidth(status, 1);
+		renderText(shader, status, (width - textWidth) / 2, 10, 1);
+	}
 }
 
 void GuiRenderer::toggleHelp() {

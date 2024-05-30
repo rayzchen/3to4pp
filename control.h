@@ -25,9 +25,29 @@
 #include "render.h"
 #include "puzzle.h"
 
+class MoveHistory {
+	public:
+		MoveHistory();
+		void insertMove(MoveEntry entry);
+		bool isOpposite(MoveEntry entry1, MoveEntry entry2);
+		MoveEntry getOpposite(MoveEntry entry);
+		bool undoMove(MoveEntry* entry);
+		bool redoMove(MoveEntry* entry);
+		int getTurnCount();
+
+	private:
+		int turnCount;
+		std::vector<MoveEntry> history;
+		std::vector<MoveEntry> redoList;
+		bool undoing;
+		bool redoing;
+};
+
 class PuzzleController {
 	public:
+		friend class GuiRenderer;
 		PuzzleController(PuzzleRenderer* renderer);
+		~PuzzleController();
 		void updatePuzzle(GLFWwindow* window, double dt);
         bool checkMiddleGyro(GLFWwindow* window);
         bool checkDirectionalMove(GLFWwindow* window);
@@ -35,6 +55,8 @@ class PuzzleController {
         bool checkCellKeys(GLFWwindow* window, CellLocation* cell);
         bool checkDirectionKeys(GLFWwindow* window, RotateDirection* direction);
         void startCellMove(CellLocation cell, RotateDirection direction);
+        void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        std::string getHistoryStatus();
 
 	    static int cellKeys[];
     	static int directionKeys[];
@@ -42,6 +64,8 @@ class PuzzleController {
 	private:
 		PuzzleRenderer *renderer;
 		Puzzle *puzzle;
+		MoveHistory *history;
+		std::string historyStatus;
 };
 
 #endif // control.h

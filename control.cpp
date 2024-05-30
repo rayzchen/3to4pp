@@ -27,6 +27,11 @@ int PuzzleController::directionKeys[] = {GLFW_KEY_I, GLFW_KEY_K, GLFW_KEY_J,
 PuzzleController::PuzzleController(PuzzleRenderer* renderer) {
 	this->renderer = renderer;
 	this->puzzle = renderer->puzzle;
+    history = new MoveHistory();
+}
+
+PuzzleController::~PuzzleController() {
+    delete this->history;
 }
 
 void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
@@ -39,6 +44,7 @@ void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
             case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
             case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.location); break;
         }
+        history->insertMove(entry);
 	}
 	if (!renderer->animating) {
         if (checkMiddleGyro(window)) return;
@@ -51,6 +57,22 @@ void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
             entry.animLength = 2.0f;
             entry.location = -1 * puzzle->outerSlicePos;
             renderer->scheduleMove(entry);
+        } else if (glfwGetKey(window, GLFW_KEY_Z)) {
+            MoveEntry entry;
+            if (history->undoMove(&entry)) {
+                renderer->scheduleMove(entry);
+                historyStatus = "Undid 1 move!";
+            } else {
+                historyStatus = "No moves left!";
+            }
+        } else if (glfwGetKey(window, GLFW_KEY_Y)) {
+            MoveEntry entry;
+            if (history->redoMove(&entry)) {
+                renderer->scheduleMove(entry);
+                historyStatus = "Redid 1 move!";
+            } else {
+                historyStatus = "No moves left!";
+            }
         }
     }
 }
@@ -243,4 +265,126 @@ void PuzzleController::startCellMove(CellLocation cell, RotateDirection directio
     entry.cell = cell;
     entry.direction = direction;
     renderer->scheduleMove(entry);
+}
+
+void PuzzleController::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        historyStatus.clear();
+    }
+    // todo: move other keybinds into this function
+}
+
+std::string PuzzleController::getHistoryStatus() {
+    return historyStatus;
+}
+
+MoveHistory::MoveHistory() {
+    turnCount = 0;
+    undoing = false;
+    redoing = false;
+}
+
+void MoveHistory::insertMove(MoveEntry entry) {
+    if (undoing) {
+        if (entry.type == TURN) {
+            turnCount -= 1;
+        }
+        undoing = false;
+    } else if (history.size() && isOpposite(entry, history.back())) {
+        redoList.push_back(history.back());
+        history.pop_back();
+        if (entry.type == TURN) {
+            turnCount -= 1;
+        }
+    } else {
+        if (!redoing) {
+            redoList.clear();
+        } else {
+            redoing = false;
+        }
+        history.push_back(entry);
+        if (entry.type == TURN) {
+            turnCount += 1;
+        }
+    }
+}
+
+bool MoveHistory::undoMove(MoveEntry *entry) {
+    if (!history.size()) {
+        return false;
+    }
+    MoveEntry lastEntry = history.back();
+    *entry = getOpposite(lastEntry);
+    undoing = true;
+    redoList.push_back(lastEntry);
+    history.pop_back();
+    return true;
+}
+
+bool MoveHistory::redoMove(MoveEntry *entry) {
+    if (!redoList.size()) {
+        return false;
+    }
+    *entry = redoList.back();
+    redoList.pop_back();
+    redoing = true;
+    return true;
+}
+
+int MoveHistory::getTurnCount() {
+    return turnCount;
+}
+
+bool isOppositeParity(int a, int b) {
+    return a / 2 == b / 2 && a % 2 == 1 - b % 2;
+}
+
+int getOppositeParity(int a) {
+    return a / 2 * 2 + (1 - a % 2);
+}
+
+bool MoveHistory::isOpposite(MoveEntry entry1, MoveEntry entry2) {
+    if (entry1.type != entry2.type) {
+        return false;
+    }
+    switch (entry1.type) {
+        case GYRO:
+            return isOppositeParity((int)entry1.cell, (int)entry2.cell);
+        case TURN:
+            return entry1.cell == entry2.cell && isOppositeParity((int)entry1.direction, (int)entry2.direction);
+        case ROTATE:
+            return isOppositeParity((int)entry1.direction, (int)entry2.direction);
+        case GYRO_OUTER:
+            return entry1.location == -entry2.location;
+        case GYRO_MIDDLE:
+            return entry1.location == -entry2.location;
+        default:
+            // should not run
+            return false;
+    }
+}
+
+MoveEntry MoveHistory::getOpposite(MoveEntry entry) {
+    MoveEntry opposite;
+    opposite.type = entry.type;
+    opposite.animLength = entry.animLength;
+    switch (entry.type) {
+        case GYRO:
+            opposite.cell = (CellLocation)getOppositeParity((int)entry.cell);
+            break;
+        case TURN:
+            opposite.cell = entry.cell;
+            opposite.direction = (RotateDirection)getOppositeParity((int)entry.direction);
+            break;
+        case ROTATE:
+            opposite.direction = (RotateDirection)getOppositeParity((int)entry.direction);
+            break;
+        case GYRO_OUTER:
+            opposite.location = -entry.location;
+            break;
+        case GYRO_MIDDLE:
+            opposite.location = -entry.location;
+            break;
+    }
+    return opposite;
 }

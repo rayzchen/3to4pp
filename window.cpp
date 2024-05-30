@@ -32,6 +32,9 @@
 #include "shaders.h"
 #include "constants.h"
 
+#define WIDTH 800
+#define HEIGHT 500
+
 Window* Window::current;
 
 Window::Window() {
@@ -49,7 +52,7 @@ Window::Window() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    window = glfwCreateWindow(800, 500, "3x3x3x3 (3to4++)", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "3x3x3x3 (3to4++)", NULL, NULL);
     if (!window) {
         exit(EXIT_FAILURE);
     }
@@ -61,11 +64,11 @@ Window::Window() {
 
     modelShader = new Shader(Shaders::modelVertex, Shaders::modelFragment);
     guiShader = new Shader(Shaders::guiVertex, Shaders::guiFragment);
-    camera = new Camera(M_PI_4, 800, 500, 0.02, 50);
+    camera = new Camera(M_PI_4, WIDTH, HEIGHT, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
-    gui = new GuiRenderer(800, 500);
     controller = new PuzzleController(renderer);
+    gui = new GuiRenderer(controller, WIDTH, HEIGHT);
     vsync = true;
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
@@ -77,6 +80,7 @@ Window::Window() {
     });
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
+        Window::current->controller->keyCallback(window, key, scancode, action, mods);
     });
 }
 

@@ -24,6 +24,7 @@
 #include <GLFW/glfw3.h>
 #include <map>
 #include "render.h"
+#include "control.h"
 
 typedef struct {
     unsigned int texture;
@@ -36,8 +37,7 @@ class GuiRenderer {
 	public:
 		static const char *fontFile;
 		static std::vector<std::string> helpText;
-		static std::string helpHint;
-		GuiRenderer(int width, int height);
+		GuiRenderer(PuzzleController *controller, int width, int height);
 		void renderText(Shader *shader, std::string text, float x, float y, float scale);
 		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 		int getTextWidth(std::string text, float scale);
@@ -49,6 +49,8 @@ class GuiRenderer {
 		unsigned int vao, vbo;
 		std::map<char, GlyphInfo> glyphs;
 		int lineHeight;
+        PuzzleController *controller;
+        MoveHistory *history;
 		int width, height;
 		bool showHelp;
 
