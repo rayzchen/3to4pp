@@ -46,40 +46,11 @@ void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
         }
         history->insertMove(entry);
 	}
-	if (!renderer->animating) {
-        if (checkMiddleGyro(window)) return;
-        if (checkDirectionalMove(window)) return;
-
-        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-            // gyro outer layer
-            MoveEntry entry;
-            entry.type = GYRO_OUTER;
-            entry.animLength = 2.0f;
-            entry.location = -1 * puzzle->outerSlicePos;
-            renderer->scheduleMove(entry);
-        } else if (glfwGetKey(window, GLFW_KEY_Z)) {
-            MoveEntry entry;
-            if (history->undoMove(&entry)) {
-                renderer->scheduleMove(entry);
-                historyStatus = "Undid 1 move!";
-            } else {
-                historyStatus = "No moves left!";
-            }
-        } else if (glfwGetKey(window, GLFW_KEY_Y)) {
-            MoveEntry entry;
-            if (history->redoMove(&entry)) {
-                renderer->scheduleMove(entry);
-                historyStatus = "Redid 1 move!";
-            } else {
-                historyStatus = "No moves left!";
-            }
-        }
-    }
 }
 
-bool PuzzleController::checkMiddleGyro(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_M) || glfwGetKey(window, GLFW_KEY_PERIOD)) {
-        int direction = (glfwGetKey(window, GLFW_KEY_M)) ? -1 : 1;
+bool PuzzleController::checkMiddleGyro(int key) {
+    if (key == GLFW_KEY_M || key == GLFW_KEY_PERIOD) {
+        int direction = (key == GLFW_KEY_M) ? -1 : 1;
         if (puzzle->canGyroMiddle(direction)) {
             MoveEntry entry;
             entry.type = GYRO_MIDDLE;
@@ -88,8 +59,7 @@ bool PuzzleController::checkMiddleGyro(GLFWwindow* window) {
             renderer->scheduleMove(entry);
             return true;
         }
-    }
-    if (glfwGetKey(window, GLFW_KEY_COMMA)) {
+    } else if (key == GLFW_KEY_COMMA) {
         MoveEntry entry;
         entry.type = GYRO_MIDDLE;
         entry.animLength = 1.0f;
@@ -111,10 +81,10 @@ bool PuzzleController::checkCellKeys(GLFWwindow* window, CellLocation* cell) {
     return foundCell;
 }
 
-bool PuzzleController::checkDirectionKeys(GLFWwindow* window, RotateDirection* direction) {
+bool PuzzleController::checkDirectionKey(int key, RotateDirection* direction) {
     bool foundDirection = false;
     for (int i = 0; i < 6; i++) {
-        if (glfwGetKey(window, directionKeys[i])) {
+        if (key == directionKeys[i]) {
             // Move outer layer
             foundDirection = true;
             *direction = (RotateDirection)i;
@@ -123,22 +93,22 @@ bool PuzzleController::checkDirectionKeys(GLFWwindow* window, RotateDirection* d
     return foundDirection;
 }
 
-bool PuzzleController::checkDirectionalMove(GLFWwindow* window) {
+bool PuzzleController::checkDirectionalMove(GLFWwindow* window, int key) {
     CellLocation cell;
     RotateDirection direction;
     if (checkCellKeys(window, &cell)) {
-        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+        if (key == GLFW_KEY_SPACE) {
             startGyro(cell);
             return true;
         }
 
-        if (checkDirectionKeys(window, &direction)) {
+        if (checkDirectionKey(key, &direction)) {
             if (puzzle->canRotateCell(cell, direction)) {
                 startCellMove(cell, direction);
                 return true;
             }
         }
-    } else if (checkDirectionKeys(window, &direction)) {
+    } else if (checkDirectionKey(key, &direction)) {
         if (puzzle->canRotatePuzzle(direction)) {
             // whole puzzle rotation
             MoveEntry entry;
@@ -268,8 +238,36 @@ void PuzzleController::startCellMove(CellLocation cell, RotateDirection directio
 }
 
 void PuzzleController::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS) {
+    if (action == GLFW_PRESS && !(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
         historyStatus.clear();
+    } else if (action == GLFW_RELEASE && !renderer->animating) {
+        if (checkMiddleGyro(key)) return;
+        if (checkDirectionalMove(window, key)) return;
+
+        if (key == GLFW_KEY_SPACE) {
+            // gyro outer layer
+            MoveEntry entry;
+            entry.type = GYRO_OUTER;
+            entry.animLength = 2.0f;
+            entry.location = -1 * puzzle->outerSlicePos;
+            renderer->scheduleMove(entry);
+        } else if (key == GLFW_KEY_Z) {
+            MoveEntry entry;
+            if (history->undoMove(&entry)) {
+                renderer->scheduleMove(entry);
+                historyStatus = "Undid 1 move!";
+            } else {
+                historyStatus = "No moves left!";
+            }
+        } else if (key == GLFW_KEY_Y) {
+            MoveEntry entry;
+            if (history->redoMove(&entry)) {
+                renderer->scheduleMove(entry);
+                historyStatus = "Redid 1 move!";
+            } else {
+                historyStatus = "No moves left!";
+            }
+        }
     }
     // todo: move other keybinds into this function
 }

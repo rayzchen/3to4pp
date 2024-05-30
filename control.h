@@ -49,11 +49,11 @@ class PuzzleController {
 		PuzzleController(PuzzleRenderer* renderer);
 		~PuzzleController();
 		void updatePuzzle(GLFWwindow* window, double dt);
-        bool checkMiddleGyro(GLFWwindow* window);
-        bool checkDirectionalMove(GLFWwindow* window);
+        bool checkMiddleGyro(int key);
+        bool checkDirectionalMove(GLFWwindow* window, int key);
         void startGyro(CellLocation cell);
         bool checkCellKeys(GLFWwindow* window, CellLocation* cell);
-        bool checkDirectionKeys(GLFWwindow* window, RotateDirection* direction);
+        bool checkDirectionKey(int key, RotateDirection* direction);
         void startCellMove(CellLocation cell, RotateDirection direction);
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         std::string getHistoryStatus();
