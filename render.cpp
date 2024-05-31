@@ -19,6 +19,7 @@
 
 #include <glad/gl.h>
 #include "render.h"
+#include "control.h"
 #include "constants.h"
 #include <iostream>
 #include <array>
@@ -84,13 +85,12 @@ Shader::Shader(const char *vertex, const char *fragment) {
     glShaderSource(vertexShader, 1, &vertex, NULL);
     glCompileShader(vertexShader);
     int  success;
-    char infoLog[512];
+    char infoLog[1024];
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
+    if(!success) {
+        glGetShaderInfoLog(vertexShader, 1024, NULL, infoLog);
+        showError(infoLog);
     }
 
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -99,10 +99,9 @@ Shader::Shader(const char *vertex, const char *fragment) {
 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 
-    if(!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
+    if(!success) {
+        glGetShaderInfoLog(fragmentShader, 1024, NULL, infoLog);
+        showError(infoLog);
     }
 
     program = glCreateProgram();
@@ -112,8 +111,8 @@ Shader::Shader(const char *vertex, const char *fragment) {
 
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if(!success) {
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
+        glGetProgramInfoLog(program, 1024, NULL, infoLog);
+        showError(infoLog);
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);

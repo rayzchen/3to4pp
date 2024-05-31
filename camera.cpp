@@ -19,7 +19,6 @@
 
 #include <GLFW/glfw3.h>
 #include <linmath.h>
-#include <iostream>
 #include "constants.h"
 #include "camera.h"
 
@@ -123,7 +122,6 @@ void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
 }
 
 void Camera::updateMouse(GLFWwindow* window, double dt) {
-    // std::cout << dt << std::endl;
     yawVel *= (1.0f - dt * deceleration);
     pitchVel *= (1.0f - dt * deceleration);
     setYaw(yaw - yawVel * dt);

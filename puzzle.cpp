@@ -18,7 +18,6 @@
  **************************************************************************/
 
 #include "puzzle.h"
-#include <iostream>
 
 Puzzle::Puzzle(std::array<Color, 8> scheme) {
     initCell(leftCell, ORANGE, {PURPLE, PINK, WHITE, YELLOW, GREEN, BLUE});

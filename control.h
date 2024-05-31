@@ -22,8 +22,11 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <string>
 #include "render.h"
 #include "puzzle.h"
+
+void showError(std::string text);
 
 class MoveHistory {
 	public:

@@ -20,7 +20,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
-#include <iostream>
 #include <stdlib.h>
 #include <linmath.h>
 #include "window.h"
@@ -59,6 +58,7 @@ Window::Window() {
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "3to4++ | Rayz's Physical 3^4", NULL, NULL);
     if (!window) {
+        showError("Failed to create window");
         exit(EXIT_FAILURE);
     }
 
@@ -72,6 +72,7 @@ Window::Window() {
 
     glfwMakeContextCurrent(window);
     if (!gladLoadGL(glfwGetProcAddress)) {
+        showError("Failed to load GL");
         exit(EXIT_FAILURE);
     }
 

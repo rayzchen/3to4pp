@@ -20,6 +20,23 @@
 #include "control.h"
 #include "constants.h"
 
+#ifdef _WIN32
+#include <windows.h>
+void showError(std::string text) {
+    HWND wnd = GetActiveWindow();
+    MessageBox(wnd, text.c_str(), "Error", 0x2010);
+}
+
+// Prevent name collision with enum
+#undef IN
+#undef OUT
+#else
+#include <iostream>
+void showError(std::string text) {
+    std::cerr << text << std::endl;
+}
+#endif
+
 int PuzzleController::cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
                                     GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
 int PuzzleController::directionKeys[] = {GLFW_KEY_I, GLFW_KEY_K, GLFW_KEY_J,

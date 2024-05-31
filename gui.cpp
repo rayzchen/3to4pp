@@ -17,7 +17,6 @@
  *
  **************************************************************************/
 
-#include <iostream>
 #include <sstream>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -68,12 +67,12 @@ GuiRenderer::GuiRenderer(PuzzleController *controller, int width, int height) {
 void GuiRenderer::initGlyphs() {
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft)) {
-	    std::cout << "Could not init freetype library" << std::endl;
+	    showError("Failed to init freetype library");
         exit(EXIT_FAILURE);
 	}
 	FT_Face face;
 	if (FT_New_Face(ft, fontFile, 0, &face)) {
-	    std::cout << "Failed to load font" << std::endl;
+	    showError("Failed to load font");
         exit(EXIT_FAILURE);
 	}
 	FT_Set_Char_Size(face, 0, 13*64, 96, 96);
@@ -82,7 +81,7 @@ void GuiRenderer::initGlyphs() {
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	for (unsigned char c = 0; c < 255; c++) {
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-			std::cout << "Failed to load glyph" << std::endl;
+			// don't spam user
         	continue;
         }
     	unsigned int texture;
