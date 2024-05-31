@@ -18,6 +18,7 @@
  **************************************************************************/
 
 #include "control.h"
+#include "constants.h"
 
 int PuzzleController::cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
                                     GLFW_KEY_E, GLFW_KEY_C, GLFW_KEY_S, GLFW_KEY_R};
@@ -48,9 +49,10 @@ void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
 	}
 }
 
-bool PuzzleController::checkMiddleGyro(int key) {
+bool PuzzleController::checkMiddleGyro(int key, bool flip) {
     if (key == GLFW_KEY_M || key == GLFW_KEY_PERIOD) {
         int direction = (key == GLFW_KEY_M) ? -1 : 1;
+        if (flip) direction *= -1;
         if (puzzle->canGyroMiddle(direction)) {
             MoveEntry entry;
             entry.type = GYRO_MIDDLE;
@@ -70,45 +72,55 @@ bool PuzzleController::checkMiddleGyro(int key) {
     return false;
 }
 
-bool PuzzleController::checkCellKeys(GLFWwindow* window, CellLocation* cell) {
+bool PuzzleController::checkCellKeys(GLFWwindow* window, CellLocation* cell, bool flip) {
     bool foundCell = false;
     for (int i = 0; i < 8; i++) {
         if (glfwGetKey(window, cellKeys[i])) {
             foundCell = true;
-            *cell = (CellLocation)i;
+            if (flip && i != 0 && i != 1 && i != 4 && i != 5) {
+                // Do not flip IN, OUT, UP, DOWN
+                *cell = (CellLocation)(i / 2 * 2 + 1 - i % 2);
+            } else {
+                *cell = (CellLocation)i;
+            }
         }
     }
     return foundCell;
 }
 
-bool PuzzleController::checkDirectionKey(int key, RotateDirection* direction) {
+bool PuzzleController::checkDirectionKey(int key, RotateDirection* direction, bool flip) {
     bool foundDirection = false;
     for (int i = 0; i < 6; i++) {
         if (key == directionKeys[i]) {
             // Move outer layer
             foundDirection = true;
-            *direction = (RotateDirection)i;
+            if (flip && i != 2 && i != 3) {
+                // Do not flip XZ or ZX
+                *direction = (RotateDirection)(i / 2 * 2 + 1 - i % 2);
+            } else {
+                *direction = (RotateDirection)i;
+            }
         }
     }
     return foundDirection;
 }
 
-bool PuzzleController::checkDirectionalMove(GLFWwindow* window, int key) {
+bool PuzzleController::checkDirectionalMove(GLFWwindow* window, int key, bool flip) {
     CellLocation cell;
     RotateDirection direction;
-    if (checkCellKeys(window, &cell)) {
+    if (checkCellKeys(window, &cell, flip)) {
         if (key == GLFW_KEY_SPACE) {
             startGyro(cell);
             return true;
         }
 
-        if (checkDirectionKey(key, &direction)) {
+        if (checkDirectionKey(key, &direction, flip)) {
             if (puzzle->canRotateCell(cell, direction)) {
                 startCellMove(cell, direction);
                 return true;
             }
         }
-    } else if (checkDirectionKey(key, &direction)) {
+    } else if (checkDirectionKey(key, &direction, flip)) {
         if (puzzle->canRotatePuzzle(direction)) {
             // whole puzzle rotation
             MoveEntry entry;
@@ -237,12 +249,13 @@ void PuzzleController::startCellMove(CellLocation cell, RotateDirection directio
     renderer->scheduleMove(entry);
 }
 
-void PuzzleController::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS && !(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
-        historyStatus.clear();
-    } else if (action == GLFW_RELEASE && !renderer->animating) {
-        if (checkMiddleGyro(key)) return;
-        if (checkDirectionalMove(window, key)) return;
+void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, bool flip) {
+    if (action == GLFW_PRESS && !renderer->animating) {
+        if (!(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
+            historyStatus.clear();
+        }
+        if (checkMiddleGyro(key, flip)) return;
+        if (checkDirectionalMove(window, key, flip)) return;
 
         if (key == GLFW_KEY_SPACE) {
             // gyro outer layer
@@ -387,9 +400,9 @@ MoveEntry MoveHistory::getOpposite(MoveEntry entry) {
     return opposite;
 }
 
-void PuzzleController::checkOutline(GLFWwindow *window, Shader *shader) {
+void PuzzleController::checkOutline(GLFWwindow *window, Shader *shader, bool flip) {
     CellLocation cell;
-    if (checkCellKeys(window, &cell)) {
+    if (checkCellKeys(window, &cell, flip)) {
         renderer->renderCellOutline(shader, cell);
     }
 }

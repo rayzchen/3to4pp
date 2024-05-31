@@ -93,7 +93,7 @@ Window::Window() {
     });
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
-        Window::current->controller->keyCallback(window, key, scancode, action, mods);
+        Window::current->controller->keyCallback(window, key, action, Window::current->camera->inputFlipped());
     });
 }
 
@@ -124,7 +124,7 @@ void Window::run() {
         modelShader->setMat4("projection", *camera->getProjection());
 
         renderer->renderPuzzle(modelShader);
-        controller->checkOutline(window, modelShader);
+        controller->checkOutline(window, modelShader, camera->inputFlipped());
         gui->renderGui(guiShader);
 
         glfwSwapBuffers(window);

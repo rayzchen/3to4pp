@@ -68,6 +68,8 @@ float Camera::getYaw() {
 
 void Camera::setYaw(float yaw) {
     this->yaw = fmod(yaw, 2 * M_PI);
+    // Force positive
+    if (this->yaw < 0) this->yaw += 2 * M_PI;
     recalculate = true;
 }
 
@@ -97,6 +99,10 @@ void Camera::setZoom(float zoom) {
         this->zoom = 5.0f;
     }
     recalculate = true;
+}
+
+bool Camera::inputFlipped() {
+    return yaw > M_PI_2 && yaw < 3 * M_PI_2;
 }
 
 void Camera::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {

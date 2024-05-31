@@ -32,6 +32,7 @@ class Camera {
         void setPitch(float pitch);
         float getZoom();
         void setZoom(float zoom);
+        bool inputFlipped();
         mat4x4* getViewMat();
         mat4x4* getProjection();
 
