@@ -20,6 +20,10 @@
 #include "puzzle.h"
 
 Puzzle::Puzzle(std::array<Color, 8> scheme) {
+    resetPuzzle();
+}
+
+void Puzzle::resetPuzzle() {
     initCell(leftCell, ORANGE, {PURPLE, PINK, WHITE, YELLOW, GREEN, BLUE});
     initCell(rightCell, RED, {PINK, PURPLE, WHITE, YELLOW, GREEN, BLUE});
     initSlice(innerSlice, PURPLE, {WHITE, YELLOW, GREEN, BLUE});

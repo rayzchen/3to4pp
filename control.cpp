@@ -314,10 +314,19 @@ void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int 
             }
         } else if (mods & GLFW_MOD_CONTROL) {
             if (key == GLFW_KEY_F) {
+                resetPuzzle();
                 scramblePuzzle();
+            } else if (key == GLFW_KEY_R) {
+                resetPuzzle();
             }
         }
     }
+}
+
+void PuzzleController::resetPuzzle() {
+    puzzle->resetPuzzle();
+    scramble.clear();
+    history->reset();
 }
 
 void PuzzleController::scramblePuzzle() {
@@ -389,6 +398,12 @@ MoveHistory::MoveHistory() {
     turnCount = 0;
     undoing = false;
     redoing = false;
+}
+
+void MoveHistory::reset() {
+    turnCount = 0;
+    history.clear();
+    redoList.clear();
 }
 
 void MoveHistory::insertMove(MoveEntry entry) {

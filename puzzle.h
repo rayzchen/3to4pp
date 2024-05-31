@@ -54,8 +54,7 @@ class Puzzle {
     friend class PuzzleController;
     public:
         Puzzle(std::array<Color, 8> scheme = {PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE});
-        void save(std::string filename);
-        static Puzzle load();
+        void resetPuzzle();
         bool canRotateCell(CellLocation cell, RotateDirection direction);
         void rotateCell(CellLocation cell, RotateDirection direction);
         void gyroCell(CellLocation cell);

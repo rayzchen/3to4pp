@@ -32,6 +32,7 @@ void showError(std::string text);
 class MoveHistory {
 	public:
 		MoveHistory();
+		void reset();
 		void insertMove(MoveEntry entry);
 		bool isOpposite(MoveEntry entry1, MoveEntry entry2);
 		MoveEntry getOpposite(MoveEntry entry);
@@ -62,6 +63,7 @@ class PuzzleController {
         void keyCallback(GLFWwindow* window, int key, int action, int mods, bool flip);
         std::string getHistoryStatus();
         void checkOutline(GLFWwindow *window, Shader *shader, bool flip);
+        void resetPuzzle();
         void scramblePuzzle();
         void performScramble();
 
