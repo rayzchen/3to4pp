@@ -22,6 +22,7 @@
 #include <glad/gl.h>
 #include <stdlib.h>
 #include <linmath.h>
+#include <iostream>
 #include "window.h"
 #include "render.h"
 #include "control.h"
@@ -84,7 +85,9 @@ Window::Window() {
     controller = new PuzzleController(renderer);
     gui = new GuiRenderer(controller, WIDTH, HEIGHT);
     vsync = true;
+    fullscreen = false;
     updateFlag = true;
+    maxFrames = 0;
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
         Window::current->camera->scrollCallback(window, xoffset, yoffset);
@@ -92,6 +95,7 @@ Window::Window() {
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
         Window::current->camera->framebufferSizeCallback(window, width, height);
         Window::current->gui->framebufferSizeCallback(window, width, height);
+        Window::current->draw();
     });
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
@@ -116,33 +120,43 @@ void Window::run() {
 
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
+        if (!(fullscreen || maxFrames == 0)) {
+            while (glfwGetTime() - lastTime < 1.0f / maxFrames) {
+                glfwWaitEventsTimeout(1.0 / maxFrames - (glfwGetTime() - lastTime));
+            }
+        }
         double tick = glfwGetTime();
         double dt = tick - lastTime;
         lastTime = tick;
+        std::cout << 1 / dt << std::endl;
         if (camera->updateMouse(window, dt)) setUpdateFlag();
         if (renderer->updateMouse(window, dt)) setUpdateFlag();
         if (controller->updatePuzzle(window, dt)) setUpdateFlag();
 
         if (updateFlag) {
             updateFlag = false;
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            modelShader->use();
-            modelShader->setMat4("view", *camera->getViewMat());
-            modelShader->setMat4("projection", *camera->getProjection());
-
-            renderer->renderPuzzle(modelShader);
-            if (controller->checkOutline(window, modelShader, camera->inputFlipped())) {
-                setUpdateFlag();
-            }
-            gui->renderGui(guiShader);
-            glfwSwapBuffers(window);
+            draw();
+            glfwPollEvents();
         } else {
             glfwWaitEvents();
         }
-
-        glfwPollEvents();
     }
+}
+
+void Window::draw() {
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    modelShader->use();
+    modelShader->setMat4("view", *camera->getViewMat());
+    modelShader->setMat4("projection", *camera->getProjection());
+
+    renderer->renderPuzzle(modelShader);
+    if (controller->checkOutline(window, modelShader, camera->inputFlipped())) {
+        setUpdateFlag();
+    }
+    gui->renderGui(guiShader);
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 }
 
 Window::~Window() {
@@ -166,18 +180,18 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     if (action == GLFW_PRESS) {
         setUpdateFlag();
         if ((key == GLFW_KEY_ENTER && mods & GLFW_MOD_ALT) || key == GLFW_KEY_F11) {
-            GLFWmonitor* monitor = glfwGetWindowMonitor(window);
-            if (monitor) {
+            if (fullscreen) {
                 glfwSetWindowMonitor(window, NULL, saved_x, saved_y, saved_w, saved_h, GLFW_DONT_CARE);
                 glfwSwapInterval(0);
             } else {
                 glfwGetWindowPos(window, &saved_x, &saved_y);
                 glfwGetWindowSize(window, &saved_w, &saved_h);
-                monitor = glfwGetPrimaryMonitor();
+                GLFWmonitor *monitor = glfwGetPrimaryMonitor();
                 const GLFWvidmode* mode = glfwGetVideoMode(monitor);
                 glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
                 glfwSwapInterval(vsync);
             }
+            fullscreen = !fullscreen;
         } else if (key == GLFW_KEY_H) {
             gui->toggleHelp();
         }

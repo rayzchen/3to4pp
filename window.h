@@ -32,6 +32,7 @@ class Window {
         Window();
         ~Window();
         void run();
+        void draw();
         void close();
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         void setUpdateFlag();
@@ -46,6 +47,8 @@ class Window {
         Puzzle *puzzle;
         double lastTime;
         bool vsync;
+        bool fullscreen;
+        int maxFrames;
         bool updateFlag;
         static Window *current;
 };
