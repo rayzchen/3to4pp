@@ -19,6 +19,9 @@
 
 #include "control.h"
 #include "constants.h"
+#include <random>
+#include <ctime>
+#include <iostream>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -46,6 +49,8 @@ PuzzleController::PuzzleController(PuzzleRenderer* renderer) {
 	this->renderer = renderer;
 	this->puzzle = renderer->puzzle;
     history = new MoveHistory();
+    rng.seed(std::time(NULL));
+    scrambleIndex = -1;
 }
 
 PuzzleController::~PuzzleController() {
@@ -62,7 +67,14 @@ void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
             case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
             case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.location); break;
         }
-        history->insertMove(entry);
+        if (scrambleIndex != -1) {
+            if (renderer->pendingMoves.size() == 0) {
+                scrambleIndex++;
+                performScramble();
+            }
+        } else {
+            history->insertMove(entry);
+        }
 	}
 }
 
@@ -266,40 +278,107 @@ void PuzzleController::startCellMove(CellLocation cell, RotateDirection directio
     renderer->scheduleMove(entry);
 }
 
-void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, bool flip) {
-    if (action == GLFW_PRESS && !renderer->animating) {
-        if (!(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
-            historyStatus.clear();
-        }
-        if (checkMiddleGyro(key, flip)) return;
-        if (checkDirectionalMove(window, key, flip)) return;
-
-        if (key == GLFW_KEY_SPACE) {
-            // gyro outer layer
-            MoveEntry entry;
-            entry.type = GYRO_OUTER;
-            entry.animLength = 2.0f;
-            entry.location = -1 * puzzle->outerSlicePos;
-            renderer->scheduleMove(entry);
-        } else if (key == GLFW_KEY_Z) {
-            MoveEntry entry;
-            if (history->undoMove(&entry)) {
-                renderer->scheduleMove(entry);
-                historyStatus = "Undid 1 move!";
-            } else {
-                historyStatus = "No moves left!";
+void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int mods, bool flip) {
+    if (renderer->animating) return;
+    if (action == GLFW_PRESS) {
+        if (mods == 0) {
+            if (!(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
+                historyStatus.clear();
             }
-        } else if (key == GLFW_KEY_Y) {
-            MoveEntry entry;
-            if (history->redoMove(&entry)) {
+            if (checkMiddleGyro(key, flip)) return;
+            if (checkDirectionalMove(window, key, flip)) return;
+
+            if (key == GLFW_KEY_SPACE) {
+                // gyro outer layer
+                MoveEntry entry;
+                entry.type = GYRO_OUTER;
+                entry.animLength = 2.0f;
+                entry.location = -1 * puzzle->outerSlicePos;
                 renderer->scheduleMove(entry);
-                historyStatus = "Redid 1 move!";
-            } else {
-                historyStatus = "No moves left!";
+            } else if (key == GLFW_KEY_Z) {
+                MoveEntry entry;
+                if (history->undoMove(&entry)) {
+                    renderer->scheduleMove(entry);
+                    historyStatus = "Undid 1 move!";
+                } else {
+                    historyStatus = "No moves left!";
+                }
+            } else if (key == GLFW_KEY_Y) {
+                MoveEntry entry;
+                if (history->redoMove(&entry)) {
+                    renderer->scheduleMove(entry);
+                    historyStatus = "Redid 1 move!";
+                } else {
+                    historyStatus = "No moves left!";
+                }
+            }
+        } else if (mods & GLFW_MOD_CONTROL) {
+            if (key == GLFW_KEY_F) {
+                scramblePuzzle();
             }
         }
     }
-    // todo: move other keybinds into this function
+}
+
+void PuzzleController::scramblePuzzle() {
+    static std::uniform_int_distribution<int> typeDist(0, 3);
+    static std::uniform_int_distribution<int> boolDist(0, 1);
+    static std::uniform_int_distribution<int> directionDist(0, 5);
+    static std::uniform_int_distribution<int> cellDist(0, 7);
+    int scrambleLength = 30;
+    MoveEntry entry;
+    for (int i = 0; i < scrambleLength; i++) {
+        if (typeDist(rng) == 0) {
+            entry.type = GYRO;
+            entry.cell = (CellLocation)(2 + directionDist(rng));
+        } else {
+            entry.type = TURN;
+            entry.cell = (CellLocation)cellDist(rng);
+            switch (entry.cell) {
+                case IN:
+                case OUT:
+                    // YZ or ZY
+                    entry.direction = (RotateDirection)boolDist(rng);
+                    break;
+                case UP:
+                case DOWN:
+                    // XZ or ZX
+                    entry.direction = (RotateDirection)(2 + boolDist(rng));
+                    break;
+                case FRONT:
+                case BACK:
+                    // XY or YX
+                    entry.direction = (RotateDirection)(4 + boolDist(rng));
+                    break;
+                case LEFT:
+                case RIGHT:
+                    // any
+                    entry.direction = (RotateDirection)directionDist(rng);
+                    break;
+            }
+        }
+        scramble.push_back(entry);
+    }
+    scrambleIndex = 0;
+    performScramble();
+}
+
+void PuzzleController::performScramble() {
+    static float renderSpeed;
+    if (scrambleIndex == 0) {
+        renderSpeed = renderer->animationSpeed;
+        renderer->animationSpeed = 20.0f;
+    }
+    if ((size_t)scrambleIndex == scramble.size()) {
+        scrambleIndex = -1;
+        renderer->animationSpeed = renderSpeed;
+    } else {
+        if (scramble[scrambleIndex].type == GYRO) {
+            startGyro(scramble[scrambleIndex].cell);
+        } else {
+            startCellMove(scramble[scrambleIndex].cell, scramble[scrambleIndex].direction);
+        }
+    }
 }
 
 std::string PuzzleController::getHistoryStatus() {

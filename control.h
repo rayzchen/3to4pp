@@ -23,6 +23,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <string>
+#include <random>
 #include "render.h"
 #include "puzzle.h"
 
@@ -58,9 +59,11 @@ class PuzzleController {
         bool checkCellKeys(GLFWwindow* window, CellLocation* cell, bool flip);
         bool checkDirectionKey(int key, RotateDirection* direction, bool flip);
         void startCellMove(CellLocation cell, RotateDirection direction);
-        void keyCallback(GLFWwindow* window, int key, int action, bool flip);
+        void keyCallback(GLFWwindow* window, int key, int action, int mods, bool flip);
         std::string getHistoryStatus();
         void checkOutline(GLFWwindow *window, Shader *shader, bool flip);
+        void scramblePuzzle();
+        void performScramble();
 
 	    static int cellKeys[];
     	static int directionKeys[];
@@ -70,6 +73,9 @@ class PuzzleController {
 		Puzzle *puzzle;
 		MoveHistory *history;
 		std::string historyStatus;
+		std::mt19937 rng;
+		int scrambleIndex;
+		std::vector<MoveEntry> scramble;
 };
 
 #endif // control.h

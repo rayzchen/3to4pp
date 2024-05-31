@@ -94,7 +94,7 @@ Window::Window() {
     });
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
-        Window::current->controller->keyCallback(window, key, action, Window::current->camera->inputFlipped());
+        Window::current->controller->keyCallback(window, key, action, mods, Window::current->camera->inputFlipped());
     });
 }
 
