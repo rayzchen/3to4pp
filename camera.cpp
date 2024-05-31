@@ -32,7 +32,7 @@ Camera::Camera(float a_fov, float a_width, float a_height, float a_near, float a
 
     yaw = 0.0f;
     pitch = 0.0f;
-    zoom = 10.0f;
+    zoom = 15.0f;
     recalculate = true;
 
     width = a_width;

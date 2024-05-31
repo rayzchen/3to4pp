@@ -37,8 +37,8 @@
 #include <windows.h>
 #endif
 
-#define WIDTH 800
-#define HEIGHT 500
+#define WIDTH 960
+#define HEIGHT 540
 
 Window* Window::current;
 
@@ -57,7 +57,7 @@ Window::Window() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, "3x3x3x3 (3to4++)", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "3to4++ - Rayz's Physical 3^4", NULL, NULL);
     if (!window) {
         exit(EXIT_FAILURE);
     }
@@ -150,7 +150,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     static int saved_y;
     static int saved_w;
     static int saved_h;
-    if (action == GLFW_RELEASE) {
+    if (action == GLFW_PRESS) {
         if ((key == GLFW_KEY_ENTER && mods & GLFW_MOD_ALT) || key == GLFW_KEY_F11) {
             GLFWmonitor* monitor = glfwGetWindowMonitor(window);
             if (monitor) {

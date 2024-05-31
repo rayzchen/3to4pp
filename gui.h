@@ -23,6 +23,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <map>
+#include <array>
+#include <linmath.h>
 #include "render.h"
 #include "control.h"
 
@@ -37,10 +39,11 @@ class GuiRenderer {
 	public:
 		static const char *fontFile;
 		static std::vector<std::string> helpText;
+		static std::vector<std::array<std::string, 2>> creditsText;
 		GuiRenderer(PuzzleController *controller, int width, int height);
-		void renderText(Shader *shader, std::string text, float x, float y, float scale);
+		void renderText(Shader *shader, std::string text, float x, float y, vec3 color);
 		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-		int getTextWidth(std::string text, float scale);
+		int getTextWidth(std::string text);
 		void renderGui(Shader *shader);
 		void toggleHelp();
 

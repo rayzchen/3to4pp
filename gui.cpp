@@ -47,6 +47,12 @@ std::vector<std::string> GuiRenderer::helpText = {
 	"SPACE - Gyro (Selected > I)",
 	"M, COMMA, PERIOD - Move Outer Parts",
 };
+std::vector<std::array<std::string, 2>> GuiRenderer::creditsText = {
+	{"Join the Hypercubers ", "Discord!"},
+	{"Simulator made by ", "Rayzchen (GitHub)"},
+	{"App inspired by ", "Akkei (Instagram)"},
+	{"Puzzle designed by ", "Grant S (YouTube)"}
+};
 
 GuiRenderer::GuiRenderer(PuzzleController *controller, int width, int height) {
 	this->controller = controller;
@@ -122,7 +128,8 @@ void GuiRenderer::initGlyphs() {
 	glBindVertexArray(0);
 }
 
-int GuiRenderer::getTextWidth(std::string text, float scale) {
+int GuiRenderer::getTextWidth(std::string text) {
+    float scale = 1.0f;
 	int width = 0;
     for (size_t i = 0; i < text.size(); i++) {
     	GlyphInfo glyph = glyphs[text[i]];
@@ -131,14 +138,14 @@ int GuiRenderer::getTextWidth(std::string text, float scale) {
     return width;
 }
 
-void GuiRenderer::renderText(Shader *shader, std::string text, float x, float y, float scale) {
-	vec3 color = {1, 1, 1};
+void GuiRenderer::renderText(Shader *shader, std::string text, float x, float y, vec3 color) {
 	shader->use();
 	shader->setVec3("textColor", color);
 	shader->setMat4("projection", projection);
  	glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(vao);
 
+    float scale = 1.0f;
     for (size_t i = 0; i < text.size(); i++) {
     	GlyphInfo glyph = glyphs[text[i]];
 
@@ -177,29 +184,47 @@ void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int hei
 }
 
 void GuiRenderer::renderGui(Shader *shader) {
+	vec3 white = {1, 1, 1};
+	vec3 red = {1, 0.5, 0.5};
+	vec3 blue = {0.5, 0.5, 1};
+
+	int textWidth;
 	if (showHelp) {
-		int textWidth = getTextWidth(helpText[10], 1);
+		textWidth = getTextWidth(helpText[10]);
 		for (size_t i = 0; i < helpText.size(); i++) {
 			float x = width - 5 - textWidth;
-			float y = height - (i + 1) * lineHeight;
-			if (i == 0) x = width - 5 - (textWidth + getTextWidth(helpText[i], 1)) / 2;
-			renderText(shader, helpText[i], x, y, 1);
+			float y = height - (i + 2) * lineHeight;
+			if (i == 0) x = width - 5 - (textWidth + getTextWidth(helpText[i])) / 2;
+			renderText(shader, helpText[i], x, y, white);
 		}
+
+		for (size_t i = 0; i < creditsText.size(); i++) {
+			float x = 5;
+			float y = 10 + (creditsText.size() - i - 1) * lineHeight;
+			textWidth = getTextWidth(creditsText[i][0]);
+			renderText(shader, creditsText[i][0], x, y, white);
+			renderText(shader, creditsText[i][1], x + textWidth, y, blue);
+		}
+		renderText(shader, "links dont work lol", 5, 10 + creditsText.size() * lineHeight, red);
 	}
 
+	std::string saveWarning = "No saving in this version!";
+	textWidth = getTextWidth(saveWarning);
+	renderText(shader, saveWarning, width - 5 - textWidth, height - lineHeight, red);
+
 	std::string helpHint = "Help: H";
-	int textWidth = getTextWidth(helpHint, 1);
-	renderText(shader, helpHint, width - 5 - textWidth, 10, 1);
+	textWidth = getTextWidth(helpHint);
+	renderText(shader, helpHint, width - 5 - textWidth, 10, white);
 
 	std::ostringstream stream;
-	stream << "Turn Count: " << history->getTurnCount();
-	textWidth = getTextWidth(stream.str(), 1);
-	renderText(shader, stream.str(), (width - textWidth) / 2, height - lineHeight, 1);
+	stream << "Move Count: " << history->getTurnCount();
+	textWidth = getTextWidth(stream.str());
+	renderText(shader, stream.str(), (width - textWidth) / 2, height - lineHeight, white);
 
 	std::string status = controller->getHistoryStatus();
 	if (!status.empty()) {
-		textWidth = getTextWidth(status, 1);
-		renderText(shader, status, (width - textWidth) / 2, 10, 1);
+		textWidth = getTextWidth(status);
+		renderText(shader, status, (width - textWidth) / 2, 10, white);
 	}
 }
 
