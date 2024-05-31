@@ -43,13 +43,20 @@ build:	clean all addicon
 else
 build:	clean all
 endif
-	rm -rf dist
-	mkdir dist
-	cp 3to4++ dist
-	cp LICENSE dist
+	rm -rf 3to4pp
+	mkdir 3to4pp
+	cp 3to4++ 3to4pp
+	cp LICENSE 3to4pp
 
 shared: build
 ifeq ($(OS),Windows_NT)
-	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
-	cp lib/*.dll dist
+	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} 3to4pp
+	cp lib/*.dll 3to4pp
 endif
+
+release:
+	rm -rf dist
+	make build
+	7z a dist/3to4++.zip 3to4pp/
+	make shared
+	7z a dist/3to4++dll.zip 3to4pp/

@@ -10,10 +10,11 @@ On Linux, install a C++ compiler, `make`, the required GLFW, freetype and OpenGL
 
 Then run
 ```
-$ make
+$ make shared
+$ cd 3to4pp/
 $ ./3to4++
 ```
-to compile and run.
+to compile and run. If `make shared` fails, try `make build`.
 
 On Windows, install [MinGW](https://www.mingw-w64.org/) or [Cygwin](https://www.cygwin.com/index.html) for a GNU C++ compiler.
 
@@ -23,6 +24,7 @@ Then go to https://freetype.org/download.html and build using `./configure` and 
 
 Finally run
 ```
-> make
+> make build
+> cd 3to4pp
 > 3to4++.exe
 ```

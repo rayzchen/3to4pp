@@ -1,9 +1,10 @@
 *.[osa]
-3to4
+3to4++
 *.exe
 *.dll
 .vscode/
-dist/
+3to4pp/
 include/GLFW/
 include/freetype/
 include/ft2build.h
+*.zip

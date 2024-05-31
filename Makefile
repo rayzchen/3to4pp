@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Fri May 31 12:03:29 2024
+# Created by gmakemake (Ubuntu May 28 2024) on Fri May 31 14:53:25 2024
 #
 
 #
@@ -88,16 +88,23 @@ build:	clean all addicon
 else
 build:	clean all
 endif
-	rm -rf dist
-	mkdir dist
-	cp 3to4++ dist
-	cp LICENSE dist
+	rm -rf 3to4pp
+	mkdir 3to4pp
+	cp 3to4++ 3to4pp
+	cp LICENSE 3to4pp
 
 shared: build
 ifeq ($(OS),Windows_NT)
-	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
-	cp lib/*.dll dist
+	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} 3to4pp
+	cp lib/*.dll 3to4pp
 endif
+
+release:
+	rm -rf dist
+	make build
+	7z a dist/3to4++.zip 3to4pp/
+	make shared
+	7z a dist/3to4++dll.zip 3to4pp/
 
 ########## End of flags from header.mak
 
@@ -126,11 +133,11 @@ all:	3to4++
 
 3to4++.o:	camera.h control.h gui.h pieces.h puzzle.h render.h window.h
 camera.o:	camera.h constants.h
-control.o:	control.h pieces.h puzzle.h render.h
+control.o:	constants.h control.h pieces.h puzzle.h render.h
 gui.o:	control.h gui.h pieces.h puzzle.h render.h
 pieces.o:	pieces.h
 puzzle.o:	puzzle.h
-render.o:	constants.h pieces.h puzzle.h render.h
+render.o:	constants.h control.h pieces.h puzzle.h render.h
 shaders.o:	shaders.h
 window.o:	camera.h constants.h control.h gui.h pieces.h puzzle.h render.h shaders.h window.h
 gl.o:	
