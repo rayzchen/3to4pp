@@ -1,8 +1,10 @@
 #include "windows.h"
 
+// https://learn.microsoft.com/en-gb/windows/win32/menurc/versioninfo-resource
 1 VERSIONINFO
-FILEVERSION 1,0,0,0
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 1,1,0,0
+PRODUCTVERSION 1,1,0,0
+FILEFLAGS VS_FF_PRERELEASE
 FILEOS VOS_NT
 FILETYPE VFT_APP
 BEGIN
@@ -12,11 +14,11 @@ BEGIN
 	BEGIN
 	    VALUE "CompanyName",	"Rayzchen"
 	    VALUE "FileDescription",	"3to4++: Virtual physical 3x3x3x3 puzzle simulator"
-	    VALUE "FileVersion",	"1.0.0.0"
+	    VALUE "FileVersion",	"1.1.0.0"
 	    VALUE "InternalName",	"3to4++"
 	    VALUE "OriginalFilename",	"3to4++.exe"
 	    VALUE "ProductName",	"3to4pp"
-	    VALUE "ProductVersion",	"1.0.0.0"
+	    VALUE "ProductVersion",	"1.1.0.0"
 	END
     END
 END

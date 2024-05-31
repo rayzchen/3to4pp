@@ -1,4 +1,4 @@
-# 3to4++ v1.0
+# 3to4++ v1.1
 
 A virtual simulator for the [physical 3x3x3x3 design](https://hypercubing.xyz/puzzles/physical/3x3x3x3/) by Grant S.
 Written with [GLFW](https://www.glfw.org/), [FreeType](https://freetype.org/), [OpenGL](https://www.opengl.org/) and [C++](https://isocpp.org/).
