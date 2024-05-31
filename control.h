@@ -53,7 +53,7 @@ class PuzzleController {
 		friend class GuiRenderer;
 		PuzzleController(PuzzleRenderer* renderer);
 		~PuzzleController();
-		void updatePuzzle(GLFWwindow* window, double dt);
+		bool updatePuzzle(GLFWwindow* window, double dt);
         bool checkMiddleGyro(int key, bool flip);
         bool checkDirectionalMove(GLFWwindow* window, int key, bool flip);
         void startGyro(CellLocation cell);
@@ -62,7 +62,7 @@ class PuzzleController {
         void startCellMove(CellLocation cell, RotateDirection direction);
         void keyCallback(GLFWwindow* window, int key, int action, int mods, bool flip);
         std::string getHistoryStatus();
-        void checkOutline(GLFWwindow *window, Shader *shader, bool flip);
+        bool checkOutline(GLFWwindow *window, Shader *shader, bool flip);
         void resetPuzzle();
         void scramblePuzzle();
         void performScramble();

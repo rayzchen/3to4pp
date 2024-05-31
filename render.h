@@ -85,7 +85,7 @@ class PuzzleRenderer {
         void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ, CellLocation filter = (CellLocation)-1);
 
         void renderCellOutline(Shader *shader, CellLocation cell);
-        void updateMouse(GLFWwindow* window, double dt);
+        bool updateMouse(GLFWwindow* window, double dt);
         bool updateAnimations(GLFWwindow *window, double dt, MoveEntry* entry);
         void scheduleMove(MoveEntry entry);
 

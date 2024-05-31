@@ -38,7 +38,7 @@ class Camera {
 
         void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
         void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-        void updateMouse(GLFWwindow* window, double dt);
+        bool updateMouse(GLFWwindow* window, double dt);
 
     private:
         mat4x4 view, projection;

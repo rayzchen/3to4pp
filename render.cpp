@@ -279,7 +279,8 @@ void PuzzleRenderer::render4c(Shader *shader, const std::array<float, 3> pos, co
     meshes[3]->renderEdges();
 }
 
-void PuzzleRenderer::updateMouse(GLFWwindow* window, double dt) {
+bool PuzzleRenderer::updateMouse(GLFWwindow* window, double dt) {
+    bool updated;
     int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
     if (state == GLFW_PRESS) {
         double curX, curY;
@@ -287,10 +288,13 @@ void PuzzleRenderer::updateMouse(GLFWwindow* window, double dt) {
         if (lastY != -1.0f) {
             setSpacing(spacing - (curY - lastY) * sensitivity);
         }
+        updated = (curY - lastY) != 0;
         lastY = curY;
     } else {
+        updated = (lastY != -1.0f);
         lastY = -1.0f;
     }
+    return updated;
 }
 
 bool checkFilter(std::array<int, 2> filter, std::array<int, 2> pos) {

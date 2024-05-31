@@ -84,6 +84,7 @@ Window::Window() {
     controller = new PuzzleController(renderer);
     gui = new GuiRenderer(controller, WIDTH, HEIGHT);
     vsync = true;
+    updateFlag = true;
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
         Window::current->camera->scrollCallback(window, xoffset, yoffset);
@@ -96,6 +97,10 @@ Window::Window() {
         Window::current->keyCallback(window, key, scancode, action, mods);
         Window::current->controller->keyCallback(window, key, action, mods, Window::current->camera->inputFlipped());
     });
+}
+
+void Window::setUpdateFlag() {
+    updateFlag = true;
 }
 
 void Window::run() {
@@ -114,21 +119,28 @@ void Window::run() {
         double tick = glfwGetTime();
         double dt = tick - lastTime;
         lastTime = tick;
-        camera->updateMouse(window, dt);
-        renderer->updateMouse(window, dt);
-        controller->updatePuzzle(window, dt);
+        if (camera->updateMouse(window, dt)) setUpdateFlag();
+        if (renderer->updateMouse(window, dt)) setUpdateFlag();
+        if (controller->updatePuzzle(window, dt)) setUpdateFlag();
 
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        modelShader->use();
-        modelShader->setMat4("view", *camera->getViewMat());
-        modelShader->setMat4("projection", *camera->getProjection());
+        if (updateFlag) {
+            updateFlag = false;
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            modelShader->use();
+            modelShader->setMat4("view", *camera->getViewMat());
+            modelShader->setMat4("projection", *camera->getProjection());
 
-        renderer->renderPuzzle(modelShader);
-        controller->checkOutline(window, modelShader, camera->inputFlipped());
-        gui->renderGui(guiShader);
+            renderer->renderPuzzle(modelShader);
+            if (controller->checkOutline(window, modelShader, camera->inputFlipped())) {
+                setUpdateFlag();
+            }
+            gui->renderGui(guiShader);
+            glfwSwapBuffers(window);
+        } else {
+            glfwWaitEvents();
+        }
 
-        glfwSwapBuffers(window);
         glfwPollEvents();
     }
 }
@@ -152,6 +164,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     static int saved_w;
     static int saved_h;
     if (action == GLFW_PRESS) {
+        setUpdateFlag();
         if ((key == GLFW_KEY_ENTER && mods & GLFW_MOD_ALT) || key == GLFW_KEY_F11) {
             GLFWmonitor* monitor = glfwGetWindowMonitor(window);
             if (monitor) {

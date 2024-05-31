@@ -34,6 +34,7 @@ class Window {
         void run();
         void close();
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        void setUpdateFlag();
 
     private:
         GLFWwindow *window;
@@ -45,6 +46,7 @@ class Window {
         Puzzle *puzzle;
         double lastTime;
         bool vsync;
+        bool updateFlag;
         static Window *current;
 };
 

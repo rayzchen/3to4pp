@@ -57,8 +57,9 @@ PuzzleController::~PuzzleController() {
     delete this->history;
 }
 
-void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
+bool PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
 	MoveEntry entry;
+    bool updated = renderer->animating;
 	if (renderer->updateAnimations(window, dt, &entry)) {
         switch (entry.type) {
             case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
@@ -76,6 +77,7 @@ void PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
             history->insertMove(entry);
         }
 	}
+    return updated;
 }
 
 bool PuzzleController::checkMiddleGyro(int key, bool flip) {
@@ -511,9 +513,11 @@ MoveEntry MoveHistory::getOpposite(MoveEntry entry) {
     return opposite;
 }
 
-void PuzzleController::checkOutline(GLFWwindow *window, Shader *shader, bool flip) {
+bool PuzzleController::checkOutline(GLFWwindow *window, Shader *shader, bool flip) {
     CellLocation cell;
     if (checkCellKeys(window, &cell, flip)) {
         renderer->renderCellOutline(shader, cell);
+        return true;
     }
+    return false;
 }
