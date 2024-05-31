@@ -525,7 +525,7 @@ void PuzzleRenderer::renderRightAnimation(Shader *shader, RotateDirection direct
         renderCell(shader, puzzle->leftCell, -1.5f);
         renderSlice(shader, puzzle->innerSlice, 0.5f);
         renderSlice(shader, puzzle->outerSlice, -3.5f);
-        if (puzzle->middleSlicePos <= 0) renderMiddleSlice(shader, true, -offset);
+        if (puzzle->middleSlicePos <= 0) renderMiddleSlice(shader, true, 0.0f);
     } else {
         float offset = 4 * animationProgress * (animationProgress - 1.0f);
         std::array<float, 3> axis = {0, 0, 0};
