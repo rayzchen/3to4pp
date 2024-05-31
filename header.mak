@@ -25,7 +25,12 @@ ifeq ($(MAKECMDGOALS),shared)
 	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 endif
 
-all:	3to4++ addicon
+# Set `all` to be the default target
+.PHONY: all run addicon build shared clean realclean
+all: 3to4++ addicon
+
+run:	3to4++
+	./3to4++
 ifeq ($(OS),Windows_NT)
 resources.o: resources.rc icons/icons.ico
 	windres resources.rc -o resources.o
@@ -33,12 +38,17 @@ addicon: resources.o
 	$(CXX) $(CXXFLAGS) -o 3to4++ 3to4++.o resources.o $(OBJFILES) $(CCLIBFLAGS)
 endif
 
+ifeq ($(OS),Windows_NT)
+build:	clean all addicon
+else
 build:	clean all
-shared: build
+endif
 	rm -rf dist
 	mkdir dist
 	cp 3to4++ dist
 	cp LICENSE dist
+
+shared: build
 ifeq ($(OS),Windows_NT)
 	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} dist
 	cp lib/*.dll dist
