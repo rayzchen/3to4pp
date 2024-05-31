@@ -57,7 +57,7 @@ Window::Window() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, "3to4++ - Rayz's Physical 3^4", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "3to4++ | Rayz's Physical 3^4", NULL, NULL);
     if (!window) {
         exit(EXIT_FAILURE);
     }
