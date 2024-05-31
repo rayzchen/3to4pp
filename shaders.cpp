@@ -29,10 +29,13 @@ out vec3 meshPos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform int outline;
 
-void main()
-{
+void main() {
     gl_Position = projection * view * model * vec4(aPos, 1.0);
+    if (outline == 1) {
+        gl_Position.z -= 1e-4;
+    }
     colorIndex = aColIdx;
     meshPos = aPos;
 }
@@ -46,6 +49,8 @@ in vec3 meshPos;
 out vec4 FragColor;
 
 uniform int border;
+uniform int outline;
+uniform float time;
 uniform vec3 pieceColors[4];
 
 uniform mat4 model;
@@ -55,11 +60,12 @@ uniform vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
 
 uniform int lighting = 1;
 
-void main()
-{
+void main() {
     if (border == 1) {
         FragColor = vec4(vec3(0.0f), 1.0f);
-    } else {
+    } else if (outline == 1) {
+        FragColor = vec4(vec3(0.7 + 0.3 * sin(time)), 1.0f);
+    }  else {
         vec3 objectColor;
         if (abs(colorIndex - 0.0f) < 0.002f) {
             objectColor = pieceColors[0];

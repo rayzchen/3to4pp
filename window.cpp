@@ -101,12 +101,12 @@ void Window::run() {
     camera->setPitch(M_PI / 180 * -20);
     camera->setYaw(M_PI / 180 * -20);
 
+    glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthMask(GL_TRUE);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(1.0, 1.0);
-    glLineWidth(2);
 
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
@@ -122,8 +122,9 @@ void Window::run() {
         modelShader->use();
         modelShader->setMat4("view", *camera->getViewMat());
         modelShader->setMat4("projection", *camera->getProjection());
-        renderer->renderPuzzle(modelShader);
 
+        renderer->renderPuzzle(modelShader);
+        controller->checkOutline(window, modelShader);
         gui->renderGui(guiShader);
 
         glfwSwapBuffers(window);

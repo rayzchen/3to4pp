@@ -386,3 +386,10 @@ MoveEntry MoveHistory::getOpposite(MoveEntry entry) {
     }
     return opposite;
 }
+
+void PuzzleController::checkOutline(GLFWwindow *window, Shader *shader) {
+    CellLocation cell;
+    if (checkCellKeys(window, &cell)) {
+        renderer->renderCellOutline(shader, cell);
+    }
+}

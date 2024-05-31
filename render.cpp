@@ -128,6 +128,11 @@ void Shader::setInt(std::string loc, int value) {
     glUniform1i(shaderLocation, value);
 }
 
+void Shader::setFloat(std::string loc, float value) {
+    int shaderLocation = glGetUniformLocation(program, loc.c_str());
+    glUniform1f(shaderLocation, value);
+}
+
 void Shader::setVec3(std::string loc, vec3 vector) {
     int shaderLocation = glGetUniformLocation(program, loc.c_str());
     glUniform3fv(shaderLocation, 1, vector);
@@ -410,6 +415,7 @@ void PuzzleRenderer::renderMiddleSlice(Shader *shader, bool addOffsetX, float of
 }
 
 void PuzzleRenderer::renderPuzzle(Shader *shader) {
+    glLineWidth(2);
     if (pendingMoves.size() == 0) {
         renderNoAnimation(shader);
     } else if (pendingMoves.front().type == TURN) {
@@ -1134,4 +1140,108 @@ bool PuzzleRenderer::updateAnimations(GLFWwindow* window, double dt, MoveEntry *
 void PuzzleRenderer::scheduleMove(MoveEntry entry) {
     pendingMoves.push(entry);
     animating = true;
+}
+
+void PuzzleRenderer::renderCellOutline(Shader *shader, CellLocation cell) {
+    if (animating) return;
+    shader->use();
+    shader->setInt("border", 0);
+    shader->setInt("outline", 1);
+    shader->setFloat("time", 2 * M_PI * glfwGetTime());
+    glLineWidth(4);
+
+    float offset = puzzle->outerSlicePos * -0.5f;
+    float scale = 3.0f + 2 * getSpacing();
+    float posScale = 1.0f + getSpacing();
+    float flip;
+    switch (cell) {
+        case LEFT:
+        case IN:
+        case RIGHT:
+            if (cell == LEFT) offset -= 2.0f;
+            if (cell == RIGHT) offset += 2.0f;
+
+            mat4x4_translate(model, offset, 0, 0);
+            mat4x4_scale_pos(model, posScale);
+            mat4x4_scale_aniso(model, model, scale, scale, scale);
+            shader->setMat4("model", model);
+            meshes[0]->renderEdges();
+            break;
+        case OUT:
+            offset = puzzle->outerSlicePos * -3.5f;
+            mat4x4_translate(model, offset, 0, 0);
+            mat4x4_scale_pos(model, posScale);
+            mat4x4_scale_aniso(model, model, 1.0f, scale, scale);
+            shader->setMat4("model", model);
+            meshes[0]->renderEdges();
+
+            offset = puzzle->outerSlicePos * 3.0f;
+            mat4x4_translate(model, offset, 0, 0);
+            mat4x4_scale_pos(model, posScale);
+            mat4x4_scale_aniso(model, model, 2.0f, scale, scale);
+            shader->setMat4("model", model);
+            meshes[0]->renderEdges();
+            break;
+        case UP:
+        case DOWN:
+            flip = (cell == UP) ? 1.0f : -1.0f;
+            mat4x4_translate(model, 0, flip, 0);
+            mat4x4_scale_pos(model, posScale);
+            mat4x4_scale_aniso(model, model, 8.0f + 7 * getSpacing(), 1.0f, scale);
+            shader->setMat4("model", model);
+            meshes[0]->renderEdges();
+
+            offset += 2 * puzzle->middleSlicePos;
+            if (puzzle->middleSliceDir == UP) {
+                mat4x4_translate(model, offset, 2.0f * flip, 0);
+            mat4x4_scale_pos(model, posScale);
+                mat4x4_scale_aniso(model, model, 1.0f, 1.0f, scale);
+                shader->setMat4("model", model);
+                meshes[0]->renderEdges();
+            } else {
+                mat4x4_translate(model, offset, 2.0f * flip, 0);
+                mat4x4_scale_pos(model, posScale);
+                shader->setMat4("model", model);
+                meshes[0]->renderEdges();
+
+                for (int i = -1; i < 2; i += 2) {
+                    mat4x4_translate(model, offset, flip, i * 2);
+                    mat4x4_scale_pos(model, posScale);
+                    shader->setMat4("model", model);
+                    meshes[0]->renderEdges();
+                }
+            }
+            break;
+        case FRONT:
+        case BACK:
+            flip = (cell == FRONT) ? 1.0f : -1.0f;
+            mat4x4_translate(model, 0, 0, flip);
+            mat4x4_scale_pos(model, posScale);
+            mat4x4_scale_aniso(model, model, 8.0f + 7 * getSpacing(), scale, 1.0f);
+            shader->setMat4("model", model);
+            meshes[0]->renderEdges();
+
+            offset += 2 * puzzle->middleSlicePos;
+            if (puzzle->middleSliceDir == FRONT) {
+                mat4x4_translate(model, offset, 0, 2.0f * flip);
+                mat4x4_scale_pos(model, posScale);
+                mat4x4_scale_aniso(model, model, 1.0f, scale, 1.0f);
+                shader->setMat4("model", model);
+                meshes[0]->renderEdges();
+            } else {
+                mat4x4_translate(model, offset, 0, 2.0f * flip);
+                mat4x4_scale_pos(model, posScale);
+                shader->setMat4("model", model);
+                meshes[0]->renderEdges();
+
+                for (int i = -1; i < 2; i += 2) {
+                    mat4x4_translate(model, offset, i * 2, flip);
+                    mat4x4_scale_pos(model, posScale);
+                    shader->setMat4("model", model);
+                    meshes[0]->renderEdges();
+                }
+            }
+            break;
+    }
+    shader->setInt("outline", 0);
 }

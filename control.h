@@ -57,6 +57,7 @@ class PuzzleController {
         void startCellMove(CellLocation cell, RotateDirection direction);
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         std::string getHistoryStatus();
+        void checkOutline(GLFWwindow *window, Shader *shader);
 
 	    static int cellKeys[];
     	static int directionKeys[];

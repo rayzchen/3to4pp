@@ -35,6 +35,7 @@ class Shader {
         ~Shader();
         void use();
         void setInt(std::string loc, int value);
+        void setFloat(std::string loc, float value);
         void setVec3(std::string loc, vec3 vector);
         void setMat4(std::string loc, mat4x4 matrix);
         void setVec3v(std::string loc, std::vector<float> vectors);
@@ -83,6 +84,7 @@ class PuzzleRenderer {
         void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset, std::array<int, 2> stripFilter = {-1, -1});
         void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ, CellLocation filter = (CellLocation)-1);
 
+        void renderCellOutline(Shader *shader, CellLocation cell);
         void updateMouse(GLFWwindow* window, double dt);
         bool updateAnimations(GLFWwindow *window, double dt, MoveEntry* entry);
         void scheduleMove(MoveEntry entry);
