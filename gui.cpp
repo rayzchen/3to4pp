@@ -102,7 +102,10 @@ void GuiRenderer::renderGui(Shader *shader) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+#ifndef NO_DEMO_WINDOW
 	ImGui::ShowDemoWindow();
+#endif
 
 	int lineHeight = ImGui::CalcTextSize("").y;
 	int textWidth;

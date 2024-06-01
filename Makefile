@@ -53,7 +53,7 @@ else
 endif
 
 ifeq ($(MAKECMDGOALS),build)
-	CXXFLAGS += -s -Ofast -DNDEBUG
+	CXXFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
 	ifeq ($(OS),Windows_NT)
 		CCLIBFLAGS += -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
 		CXXFLAGS += -mwindows
@@ -61,7 +61,7 @@ ifeq ($(MAKECMDGOALS),build)
 endif
 
 ifeq ($(MAKECMDGOALS),shared)
-	CXXFLAGS += -s -Ofast -DNDEBUG
+	CXXFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
 	ifeq ($(OS),Windows_NT)
 		CCLIBFLAGS += -lglfw3dll
 		CXXFLAGS += -mwindows -DGLFW_DLL -DDLL_IMPORT
