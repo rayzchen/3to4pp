@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu May 28 2024) on Fri May 31 14:53:25 2024
+# Created by gmakemake (Ubuntu Jun  1 2024) on Sat Jun 01 17:57:58 2024
 #
 
 #
@@ -70,42 +70,6 @@ ifeq ($(MAKECMDGOALS),shared)
 	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 endif
 
-# Set `all` to be the default target
-.PHONY: all run addicon build shared clean realclean
-all: 3to4++ addicon
-
-run:	3to4++
-	./3to4++
-ifeq ($(OS),Windows_NT)
-resources.o: resources.rc icons/icons.ico
-	windres resources.rc -o resources.o
-addicon: resources.o
-	$(CXX) $(CXXFLAGS) -o 3to4++ 3to4++.o resources.o $(OBJFILES) $(CCLIBFLAGS)
-endif
-
-ifeq ($(OS),Windows_NT)
-build:	clean all addicon
-else
-build:	clean all
-endif
-	rm -rf 3to4pp
-	mkdir 3to4pp
-	cp 3to4++ 3to4pp
-	cp LICENSE 3to4pp
-
-shared: build
-ifeq ($(OS),Windows_NT)
-	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} 3to4pp
-	cp lib/*.dll 3to4pp
-endif
-
-release:
-	rm -rf dist
-	make build
-	7z a dist/3to4++.zip 3to4pp/
-	make shared
-	7z a dist/3to4++dll.zip 3to4pp/
-
 ########## End of flags from header.mak
 
 
@@ -141,6 +105,40 @@ render.o:	constants.h control.h pieces.h puzzle.h render.h
 shaders.o:	shaders.h
 window.o:	camera.h constants.h control.h gui.h pieces.h puzzle.h render.h shaders.h window.h
 gl.o:	
+
+########## Targets from targets.mak
+
+.PHONY: all run addicon build shared clean realclean
+
+run:	3to4++
+	./3to4++
+ifeq ($(OS),Windows_NT)
+resources.o: resources.rc icons/icons.ico
+	windres resources.rc -o resources.o
+OBJFILES += resources.o
+3to4++:	3to4++.o $(OBJFILES)
+endif
+
+build:	clean all
+	rm -rf 3to4pp
+	mkdir 3to4pp
+	cp 3to4++ 3to4pp
+	cp LICENSE 3to4pp
+
+shared: build
+ifeq ($(OS),Windows_NT)
+	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} 3to4pp
+	cp lib/*.dll 3to4pp
+endif
+
+release:
+	rm -rf dist
+	make build
+	7z a dist/3to4++.zip 3to4pp/
+	make shared
+	7z a dist/3to4++dll.zip 3to4pp/
+
+########## End of targets from targets.mak
 
 #
 # Housekeeping
