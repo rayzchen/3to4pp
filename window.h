@@ -35,6 +35,7 @@ class Window {
         void draw();
         void close();
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        void windowPosCallback(GLFWwindow* window, int xpos, int ypos);
         void setUpdateFlag();
 
     private:

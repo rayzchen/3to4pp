@@ -90,6 +90,7 @@ Window::Window() {
     maxFrames = 0;
 
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        if (yoffset != 0) Window::current->setUpdateFlag();
         Window::current->camera->scrollCallback(window, xoffset, yoffset);
     });
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
@@ -100,6 +101,9 @@ Window::Window() {
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
         Window::current->controller->keyCallback(window, key, action, mods, Window::current->camera->inputFlipped());
+    });
+    glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xpos, int ypos) {
+        Window::current->windowPosCallback(window, xpos, ypos);
     });
 }
 
@@ -128,7 +132,6 @@ void Window::run() {
         double tick = glfwGetTime();
         double dt = tick - lastTime;
         lastTime = tick;
-        std::cout << 1 / dt << std::endl;
         if (camera->updateMouse(window, dt)) setUpdateFlag();
         if (renderer->updateMouse(window, dt)) setUpdateFlag();
         if (controller->updatePuzzle(window, dt)) setUpdateFlag();
@@ -139,6 +142,7 @@ void Window::run() {
             glfwPollEvents();
         } else {
             glfwWaitEvents();
+            lastTime = glfwGetTime() - dt;
         }
     }
 }
@@ -196,4 +200,8 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
             gui->toggleHelp();
         }
     }
+}
+
+void Window::windowPosCallback(GLFWwindow* window, int xpos, int ypos) {
+    Window::current->draw();
 }
