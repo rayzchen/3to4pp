@@ -279,10 +279,14 @@ void PuzzleRenderer::render4c(Shader *shader, const std::array<float, 3> pos, co
     meshes[3]->renderEdges();
 }
 
+void PuzzleRenderer::setMousePressed(bool pressed) {
+    mousePressed = pressed;
+}
+
 bool PuzzleRenderer::updateMouse(GLFWwindow* window, double dt) {
+    // in case mousePressed flips
     bool updated;
-    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
-    if (state == GLFW_PRESS) {
+    if (mousePressed) {
         double curX, curY;
         glfwGetCursorPos(window, &curX, &curY);
         if (lastY != -1.0f) {

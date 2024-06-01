@@ -121,6 +121,10 @@ void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
     mat4x4_perspective(this->projection, this->fov, this->aspect, this->near, this->far);
 }
 
+void Camera::setMousePressed(bool pressed) {
+    mousePressed = pressed;
+}
+
 bool Camera::updateMouse(GLFWwindow* window, double dt) {
     yawVel *= (1.0f - dt * deceleration);
     pitchVel *= (1.0f - dt * deceleration);
@@ -130,8 +134,7 @@ bool Camera::updateMouse(GLFWwindow* window, double dt) {
     setPitch(pitch - pitchVel * dt);
     bool updated = (yawVel != 0.0f) || (pitchVel != 0.0f);
 
-    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-    if (state == GLFW_PRESS) {
+    if (mousePressed) {
         double curX, curY;
         glfwGetCursorPos(window, &curX, &curY);
         if (lastX != -1.0f && lastY != -1.0f) {

@@ -1,5 +1,5 @@
 CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
-CXXFLAGS = --std=c++11
+CXXFLAGS = --std=c++11 -Iimgui/ -Iimgui/backends/
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lfreetype -lglfw3 -lopengl32 -lgdi32
 else

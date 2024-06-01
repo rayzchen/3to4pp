@@ -77,21 +77,36 @@ Window::Window() {
         exit(EXIT_FAILURE);
     }
 
+    setCallbacks();
+
     modelShader = new Shader(Shaders::modelVertex, Shaders::modelFragment);
     guiShader = new Shader(Shaders::guiVertex, Shaders::guiFragment);
     camera = new Camera(M_PI_4, WIDTH, HEIGHT, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
     controller = new PuzzleController(renderer);
-    gui = new GuiRenderer(controller, WIDTH, HEIGHT);
+    gui = new GuiRenderer(window, controller, WIDTH, HEIGHT);
     vsync = true;
     fullscreen = false;
     updateFlag = true;
-    maxFrames = 0;
+    maxFrames = 60;
+}
 
+void Window::setCallbacks() {
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+        Window::current->mouseButtonCallback(window, button, action);
+    });
+    glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+        // todo: filter correctly with captureMouse()
+        Window::current->setUpdateFlag();
+    });
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-        if (yoffset != 0) Window::current->setUpdateFlag();
-        Window::current->camera->scrollCallback(window, xoffset, yoffset);
+        if (Window::current->gui->captureMouse()) {
+            Window::current->setUpdateFlag();
+        } else {
+            if (yoffset != 0) Window::current->setUpdateFlag();
+            Window::current->camera->scrollCallback(window, xoffset, yoffset);
+        }
     });
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
         Window::current->camera->framebufferSizeCallback(window, width, height);
@@ -112,6 +127,7 @@ void Window::setUpdateFlag() {
 }
 
 void Window::run() {
+    lastTime = glfwGetTime();
     camera->setPitch(M_PI / 180 * -20);
     camera->setYaw(M_PI / 180 * -20);
 
@@ -122,8 +138,10 @@ void Window::run() {
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(1.0, 1.0);
 
+    bool firstFrame = true;
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
         if (!(fullscreen || maxFrames == 0)) {
             while (glfwGetTime() - lastTime < 1.0f / maxFrames) {
                 glfwWaitEventsTimeout(1.0 / maxFrames - (glfwGetTime() - lastTime));
@@ -132,17 +150,21 @@ void Window::run() {
         double tick = glfwGetTime();
         double dt = tick - lastTime;
         lastTime = tick;
-        if (camera->updateMouse(window, dt)) setUpdateFlag();
+        std::cout << 1 / dt << std::endl;
         if (renderer->updateMouse(window, dt)) setUpdateFlag();
+        if (camera->updateMouse(window, dt)) setUpdateFlag();
         if (controller->updatePuzzle(window, dt)) setUpdateFlag();
 
         if (updateFlag) {
             updateFlag = false;
             draw();
-            glfwPollEvents();
         } else {
             glfwWaitEvents();
             lastTime = glfwGetTime() - dt;
+            if (firstFrame) {
+                setUpdateFlag();
+                firstFrame = false;
+            }
         }
     }
 }
@@ -204,4 +226,21 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 
 void Window::windowPosCallback(GLFWwindow* window, int xpos, int ypos) {
     Window::current->draw();
+}
+
+void Window::mouseButtonCallback(GLFWwindow* window, int button, int action) {
+    if (gui->captureMouse()) {
+        setUpdateFlag();
+    } else {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            camera->setMousePressed(true);
+        } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
+            renderer->setMousePressed(true);
+        }
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        camera->setMousePressed(false);
+    } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE) {
+        renderer->setMousePressed(false);
+    }
 }

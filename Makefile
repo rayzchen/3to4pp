@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  1 2024) on Sat Jun 01 17:57:58 2024
+# Created by gmakemake (Ubuntu Jun  1 2024) on Sat Jun 01 20:06:55 2024
 #
 
 #
@@ -9,15 +9,15 @@
 .SUFFIXES:
 .SUFFIXES:	.a .o .c .C .cpp .s .S
 .c.o:
-		$(COMPILE.c) $<
+		$(COMPILE.c) -o $@ $<
 .C.o:
-		$(COMPILE.cc) $<
+		$(COMPILE.cc) -o $@ $<
 .cpp.o:
-		$(COMPILE.cc) $<
+		$(COMPILE.cc) -o $@ $<
 .S.s:
 		$(CPP) -o $*.s $<
 .s.o:
-		$(COMPILE.cc) $<
+		$(COMPILE.cc) -o $@ $<
 .c.a:
 		$(COMPILE.c) -o $% $<
 		$(AR) $(ARFLAGS) $@ $%
@@ -44,7 +44,7 @@ CPP = $(CPP) $(CPPFLAGS)
 ########## Flags from header.mak
 
 CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
-CXXFLAGS = --std=c++11
+CXXFLAGS = --std=c++11 -Iimgui/ -Iimgui/backends/
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lfreetype -lglfw3 -lopengl32 -lgdi32
 else
@@ -110,14 +110,24 @@ gl.o:
 
 .PHONY: all run addicon build shared clean realclean
 
-run:	3to4++
-	./3to4++
+OBJFILES += imgui/imgui.o \
+			imgui/imgui_draw.o \
+			imgui/imgui_demo.o \
+			imgui/imgui_tables.o \
+			imgui/imgui_widgets.o \
+			imgui/backends/imgui_impl_glfw.o \
+			imgui/backends/imgui_impl_opengl3.o
+
 ifeq ($(OS),Windows_NT)
 resources.o: resources.rc icons/icons.ico
 	windres resources.rc -o resources.o
 OBJFILES += resources.o
-3to4++:	3to4++.o $(OBJFILES)
 endif
+
+3to4++:	3to4++.o $(OBJFILES) $(IMGUI_OBJFILES)
+
+run:	3to4++
+	./3to4++
 
 build:	clean all
 	rm -rf 3to4pp

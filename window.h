@@ -36,6 +36,8 @@ class Window {
         void close();
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         void windowPosCallback(GLFWwindow* window, int xpos, int ypos);
+        void mouseButtonCallback(GLFWwindow* window, int button, int action);
+        void setCallbacks();
         void setUpdateFlag();
 
     private:

@@ -38,6 +38,7 @@ class Camera {
 
         void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
         void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+        void setMousePressed(bool pressed);
         bool updateMouse(GLFWwindow* window, double dt);
 
     private:
@@ -49,6 +50,7 @@ class Camera {
         void calcViewMat();
         bool recalculate;
 
+        bool mousePressed;
         float sensitivity, deceleration;
         float yawVel, pitchVel;
         float lastX, lastY;

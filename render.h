@@ -85,6 +85,7 @@ class PuzzleRenderer {
         void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ, CellLocation filter = (CellLocation)-1);
 
         void renderCellOutline(Shader *shader, CellLocation cell);
+        void setMousePressed(bool pressed);
         bool updateMouse(GLFWwindow* window, double dt);
         bool updateAnimations(GLFWwindow *window, double dt, MoveEntry* entry);
         void scheduleMove(MoveEntry entry);
@@ -94,6 +95,7 @@ class PuzzleRenderer {
         PieceMesh *meshes[4];
         float spacing;
 
+        bool mousePressed;
         float sensitivity;
         float lastY;
         mat4x4 model;

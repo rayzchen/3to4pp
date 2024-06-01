@@ -23,6 +23,9 @@
 #include <linmath.h>
 #include <glad/gl.h>
 #include <cstdlib>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include "gui.h"
 #include "control.h"
 
@@ -53,7 +56,7 @@ std::vector<std::array<std::string, 2>> GuiRenderer::creditsText = {
 	{"Puzzle designed by ", "Grant S (YouTube)"}
 };
 
-GuiRenderer::GuiRenderer(PuzzleController *controller, int width, int height) {
+GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int width, int height) {
 	this->controller = controller;
 	this->history = controller->history;
 	this->width = width;
@@ -62,6 +65,18 @@ GuiRenderer::GuiRenderer(PuzzleController *controller, int width, int height) {
 	mat4x4_ortho(projection, 0, width, 0, height, 0, 10);
 
 	initGlyphs();
+
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontFromFileTTF(fontFile, 16);
+}
+
+GuiRenderer::~GuiRenderer() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void GuiRenderer::initGlyphs() {
@@ -125,6 +140,11 @@ void GuiRenderer::initGlyphs() {
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+}
+
+bool GuiRenderer::captureMouse() {
+	ImGuiIO& io = ImGui::GetIO();
+	return io.WantCaptureMouse;
 }
 
 int GuiRenderer::getTextWidth(std::string text) {
@@ -207,9 +227,9 @@ void GuiRenderer::renderGui(Shader *shader) {
 		renderText(shader, "links dont work lol", 5, 10 + creditsText.size() * lineHeight, red);
 	}
 
-	std::string saveWarning = "No saving in this version!";
-	textWidth = getTextWidth(saveWarning);
-	renderText(shader, saveWarning, width - 5 - textWidth, height - lineHeight, red);
+	// std::string saveWarning = "No saving in this version!";
+	// textWidth = getTextWidth(saveWarning);
+	// renderText(shader, saveWarning, width - 5 - textWidth, height - lineHeight, red);
 
 	std::string helpHint = "Help: H";
 	textWidth = getTextWidth(helpHint);
@@ -225,6 +245,24 @@ void GuiRenderer::renderGui(Shader *shader) {
 		textWidth = getTextWidth(status);
 		renderText(shader, status, (width - textWidth) / 2, 10, white);
 	}
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow();
+
+	// std::string saveWarning = "No saving in this version!";
+	// textWidth = ImGui::CalcTextSize(saveWarning.c_str()).x;
+	// textHeight = ImGui::CalcTextSize(saveWarning.c_str()).x;
+	// ImVec2 textPos = ImVec2(width - 5 - textWidth, height - 20);
+	// ImGui::GetForegroundDrawList()->AddText(
+	// 	textPos,
+	// 	IM_COL32(255, 0, 0, 255),
+	// 	"No saving in this version!"
+	// );
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void GuiRenderer::toggleHelp() {

@@ -1,11 +1,20 @@
 .PHONY: all run addicon build shared clean realclean
 
+OBJFILES += imgui/imgui.o \
+			imgui/imgui_draw.o \
+			imgui/imgui_demo.o \
+			imgui/imgui_tables.o \
+			imgui/imgui_widgets.o \
+			imgui/backends/imgui_impl_glfw.o \
+			imgui/backends/imgui_impl_opengl3.o
+
 ifeq ($(OS),Windows_NT)
 resources.o: resources.rc icons/icons.ico
 	windres resources.rc -o resources.o
 OBJFILES += resources.o
-3to4++:	3to4++.o $(OBJFILES)
 endif
+
+3to4++:	3to4++.o $(OBJFILES) $(IMGUI_OBJFILES)
 
 run:	3to4++
 	./3to4++

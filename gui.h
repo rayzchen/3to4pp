@@ -40,12 +40,14 @@ class GuiRenderer {
 		static const char *fontFile;
 		static std::vector<std::string> helpText;
 		static std::vector<std::array<std::string, 2>> creditsText;
-		GuiRenderer(PuzzleController *controller, int width, int height);
+		GuiRenderer(GLFWwindow* window, PuzzleController *controller, int width, int height);
+		~GuiRenderer();
 		void renderText(Shader *shader, std::string text, float x, float y, vec3 color);
 		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 		int getTextWidth(std::string text);
 		void renderGui(Shader *shader);
 		void toggleHelp();
+		bool captureMouse();
 
 	private:
 		mat4x4 projection;
