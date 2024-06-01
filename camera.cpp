@@ -34,6 +34,7 @@ Camera::Camera(float a_fov, float a_width, float a_height, float a_near, float a
     zoom = 15.0f;
     recalculate = true;
 
+    mousePressed = false;
     width = a_width;
     height = a_height;
     sensitivity = 5.0f;

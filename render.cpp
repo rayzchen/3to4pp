@@ -153,6 +153,7 @@ Shader::~Shader() {
 
 PuzzleRenderer::PuzzleRenderer(Puzzle *puzzle) {
     this->puzzle = puzzle;
+    mousePressed = false;
     spacing = 0.0f;
     sensitivity = 0.01f;
     animating = false;
