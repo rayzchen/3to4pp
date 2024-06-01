@@ -27,7 +27,7 @@
 #include <set>
 
 typedef enum : int {
-    PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE, UNUSED
+    PURPLE, PINK, RED, ORANGE, WHITE, YELLOW, GREEN, BLUE, UNUSED
 } Color;
 
 typedef enum : int {
@@ -53,7 +53,8 @@ class Puzzle {
     friend class PuzzleRenderer;
     friend class PuzzleController;
     public:
-        Puzzle(std::array<Color, 8> scheme = {PURPLE, PINK, RED, ORANGE, YELLOW, WHITE, GREEN, BLUE});
+        static std::array<Color, 8> scheme;
+        Puzzle();
         void resetPuzzle();
         bool canRotateCell(CellLocation cell, RotateDirection direction);
         void rotateCell(CellLocation cell, RotateDirection direction);

@@ -19,27 +19,29 @@
 
 #include "puzzle.h"
 
-Puzzle::Puzzle(std::array<Color, 8> scheme) {
+std::array<Color, 8> Puzzle::scheme = {PURPLE, PINK, RED, ORANGE, WHITE, YELLOW, GREEN, BLUE};
+
+Puzzle::Puzzle() {
     resetPuzzle();
 }
 
 void Puzzle::resetPuzzle() {
-    initCell(leftCell, ORANGE, {PURPLE, PINK, WHITE, YELLOW, GREEN, BLUE});
-    initCell(rightCell, RED, {PINK, PURPLE, WHITE, YELLOW, GREEN, BLUE});
-    initSlice(innerSlice, PURPLE, {WHITE, YELLOW, GREEN, BLUE});
-    initSlice(outerSlice, PINK, {WHITE, YELLOW, GREEN, BLUE});
+    initSlice(innerSlice, scheme[0], {scheme[4], scheme[5], scheme[6], scheme[7]});
+    initSlice(outerSlice, scheme[1], {scheme[4], scheme[5], scheme[6], scheme[7]});
+    initCell(rightCell, scheme[2], {scheme[1], scheme[0], scheme[4], scheme[5], scheme[6], scheme[7]});
+    initCell(leftCell, scheme[3], {scheme[0], scheme[1], scheme[4], scheme[5], scheme[6], scheme[7]});
 
     middleSlicePos = 0;
     outerSlicePos = 1;
     middleSliceDir = FRONT;
-    topCell = {WHITE, UNUSED, UNUSED, UNUSED};
-    bottomCell = {YELLOW, UNUSED, UNUSED, UNUSED};
-    frontCell[0] = {GREEN, YELLOW, UNUSED, UNUSED};
-    frontCell[1] = {GREEN, UNUSED, UNUSED, UNUSED};
-    frontCell[2] = {GREEN, WHITE, UNUSED, UNUSED};
-    backCell[0] = {BLUE, YELLOW, UNUSED, UNUSED};
-    backCell[1] = {BLUE, UNUSED, UNUSED, UNUSED};
-    backCell[2] = {BLUE, WHITE, UNUSED, UNUSED};
+    topCell = {scheme[4], UNUSED, UNUSED, UNUSED};
+    bottomCell = {scheme[5], UNUSED, UNUSED, UNUSED};
+    frontCell[0] = {scheme[6], scheme[5], UNUSED, UNUSED};
+    frontCell[1] = {scheme[6], UNUSED, UNUSED, UNUSED};
+    frontCell[2] = {scheme[6], scheme[4], UNUSED, UNUSED};
+    backCell[0] = {scheme[7], scheme[5], UNUSED, UNUSED};
+    backCell[1] = {scheme[7], UNUSED, UNUSED, UNUSED};
+    backCell[2] = {scheme[7], scheme[4], UNUSED, UNUSED};
 }
 
 void Puzzle::initCell(CellData& cell, Color center, std::array<Color, 6> faces) {
