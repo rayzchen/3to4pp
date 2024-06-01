@@ -18,8 +18,6 @@
  **************************************************************************/
 
 #include <sstream>
-#include <ft2build.h>
-#include FT_FREETYPE_H
 #include <linmath.h>
 #include <glad/gl.h>
 #include <cstdlib>
@@ -62,9 +60,6 @@ GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int w
 	this->width = width;
 	this->height = height;
 	showHelp = false;
-	mat4x4_ortho(projection, 0, width, 0, height, 0, 10);
-
-	initGlyphs();
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -79,69 +74,6 @@ GuiRenderer::~GuiRenderer() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
-}
-
-void GuiRenderer::initGlyphs() {
-	FT_Library ft;
-	if (FT_Init_FreeType(&ft)) {
-	    showError("Failed to init freetype library");
-        exit(EXIT_FAILURE);
-	}
-	FT_Face face;
-	if (FT_New_Face(ft, fontFile, 0, &face)) {
-	    showError("Failed to load font");
-        exit(EXIT_FAILURE);
-	}
-	FT_Set_Char_Size(face, 0, 13*64, 96, 96);
-	lineHeight = face->size->metrics.height >> 6;
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	for (unsigned char c = 0; c < 255; c++) {
-		if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-			// don't spam user
-        	continue;
-        }
-    	unsigned int texture;
-    	glGenTextures(1, &texture);
-	    glBindTexture(GL_TEXTURE_2D, texture);
-	    glTexImage2D(
-	        GL_TEXTURE_2D,
-	        0,
-	        GL_RED,
-	        face->glyph->bitmap.width,
-	        face->glyph->bitmap.rows,
-	        0,
-	        GL_RED,
-	        GL_UNSIGNED_BYTE,
-	        face->glyph->bitmap.buffer
-	    );
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	    GlyphInfo glyph = {
-	        texture,
-	        {face->glyph->bitmap.width, face->glyph->bitmap.rows},
-	        {face->glyph->bitmap_left, face->glyph->bitmap_top},
-	        face->glyph->advance.x
-	    };
-	    glyphs.insert(std::pair<char, GlyphInfo>(c, glyph));
-	}
-
-	FT_Done_Face(face);
-	FT_Done_FreeType(ft);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 }
 
 bool GuiRenderer::captureMouse() {
@@ -161,8 +93,6 @@ void GuiRenderer::renderText(std::string text, float x, float y, int color) {
 void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	this->width = width;
 	this->height = height;
-    glViewport(0, 0, width, height);
-    mat4x4_ortho(projection, 0, width, 0, height, 0, 10);
 }
 
 void GuiRenderer::renderGui(Shader *shader) {
@@ -174,6 +104,7 @@ void GuiRenderer::renderGui(Shader *shader) {
 	ImGui::NewFrame();
 	ImGui::ShowDemoWindow();
 
+	int lineHeight = ImGui::CalcTextSize("").y;
 	int textWidth;
 	if (showHelp) {
 		textWidth = getTextWidth(helpText[10]);

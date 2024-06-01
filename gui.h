@@ -22,9 +22,6 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <map>
-#include <array>
-#include <linmath.h>
 #include "render.h"
 #include "control.h"
 
@@ -50,16 +47,10 @@ class GuiRenderer {
 		bool captureMouse();
 
 	private:
-		mat4x4 projection;
-		unsigned int vao, vbo;
-		std::map<char, GlyphInfo> glyphs;
-		int lineHeight;
         PuzzleController *controller;
         MoveHistory *history;
 		int width, height;
 		bool showHelp;
-
-		void initGlyphs();
 };
 
 #endif // gui.h
