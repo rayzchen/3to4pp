@@ -70,7 +70,9 @@ GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int w
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF(fontFile, 16);
+	float xscale, yscale;
+	glfwGetWindowContentScale(window, &xscale, &yscale);
+	io.Fonts->AddFontFromFileTTF(fontFile, 20 * xscale);
 }
 
 GuiRenderer::~GuiRenderer() {
@@ -148,51 +150,12 @@ bool GuiRenderer::captureMouse() {
 }
 
 int GuiRenderer::getTextWidth(std::string text) {
-    float scale = 1.0f;
-	int width = 0;
-    for (size_t i = 0; i < text.size(); i++) {
-    	GlyphInfo glyph = glyphs[text[i]];
-        width += (glyph.advance >> 6) * scale;
-    }
-    return width;
+	return ImGui::CalcTextSize(text.c_str()).x;
 }
 
-void GuiRenderer::renderText(Shader *shader, std::string text, float x, float y, vec3 color) {
-	shader->use();
-	shader->setVec3("textColor", color);
-	shader->setMat4("projection", projection);
- 	glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(vao);
-
-    float scale = 1.0f;
-    for (size_t i = 0; i < text.size(); i++) {
-    	GlyphInfo glyph = glyphs[text[i]];
-
-    	float xpos = x + glyph.bearing[0] * scale;
-        float ypos = y - (glyph.size[1] - glyph.bearing[1]) * scale;
-
-        float w = glyph.size[0] * scale;
-        float h = glyph.size[1] * scale;
-
-        float vertices[6][4] = {
-            {xpos,     ypos + h, 0.0f, 0.0f},
-            {xpos,     ypos,     0.0f, 1.0f},
-            {xpos + w, ypos,     1.0f, 1.0f},
-
-            {xpos,     ypos + h, 0.0f, 0.0f},
-            {xpos + w, ypos,     1.0f, 1.0f},
-            {xpos + w, ypos + h, 1.0f, 0.0f}
-        };
-
-        glBindTexture(GL_TEXTURE_2D, glyph.texture);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        x += (glyph.advance >> 6) * scale;
-    }
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+void GuiRenderer::renderText(std::string text, float x, float y, int color) {
+	ImVec2 textPos = ImVec2(x, y);
+	ImGui::GetForegroundDrawList()->AddText(textPos, color, text.c_str());
 }
 
 void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -203,63 +166,52 @@ void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int hei
 }
 
 void GuiRenderer::renderGui(Shader *shader) {
-	vec3 white = {1, 1, 1};
-	vec3 red = {1, 0.5, 0.5};
-	vec3 blue = {0.5, 0.5, 1};
+	int white = IM_COL32_WHITE;
+	int red = IM_COL32(255, 127, 127, 255);
+	int blue = IM_COL32(127, 127, 255, 255);
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow();
 
 	int textWidth;
 	if (showHelp) {
 		textWidth = getTextWidth(helpText[10]);
 		for (size_t i = 0; i < helpText.size(); i++) {
 			float x = width - 5 - textWidth;
-			float y = height - (i + 2) * lineHeight;
+			float y = 5 + (i + 1) * lineHeight;
 			if (i == 0) x = width - 5 - (textWidth + getTextWidth(helpText[i])) / 2;
-			renderText(shader, helpText[i], x, y, white);
+			renderText(helpText[i], x, y, white);
 		}
 
 		for (size_t i = 0; i < creditsText.size(); i++) {
 			float x = 5;
-			float y = 10 + (creditsText.size() - i - 1) * lineHeight;
+			float y = height - 5 - (creditsText.size() - i) * lineHeight;
 			textWidth = getTextWidth(creditsText[i][0]);
-			renderText(shader, creditsText[i][0], x, y, white);
-			renderText(shader, creditsText[i][1], x + textWidth, y, blue);
+			renderText(creditsText[i][0], x, y, white);
+			renderText(creditsText[i][1], x + textWidth, y, blue);
 		}
-		renderText(shader, "links dont work lol", 5, 10 + creditsText.size() * lineHeight, red);
+		renderText("links dont work lol", 5, height - 5 - (creditsText.size() + 1) * lineHeight, red);
 	}
 
-	// std::string saveWarning = "No saving in this version!";
-	// textWidth = getTextWidth(saveWarning);
-	// renderText(shader, saveWarning, width - 5 - textWidth, height - lineHeight, red);
+	std::string saveWarning = "No saving in this version!";
+	textWidth = getTextWidth(saveWarning);
+	renderText(saveWarning, width - 5 - textWidth, 5, red);
 
 	std::string helpHint = "Help: H";
 	textWidth = getTextWidth(helpHint);
-	renderText(shader, helpHint, width - 5 - textWidth, 10, white);
+	renderText(helpHint, width - 5 - textWidth, height - 5 - lineHeight, white);
 
 	std::ostringstream stream;
 	stream << "Move Count: " << history->getTurnCount();
 	textWidth = getTextWidth(stream.str());
-	renderText(shader, stream.str(), (width - textWidth) / 2, height - lineHeight, white);
+	renderText(stream.str(), (width - textWidth) / 2, 5, white);
 
 	std::string status = controller->getHistoryStatus();
 	if (!status.empty()) {
 		textWidth = getTextWidth(status);
-		renderText(shader, status, (width - textWidth) / 2, 10, white);
+		renderText(status, (width - textWidth) / 2, height - lineHeight, white);
 	}
-
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-	ImGui::ShowDemoWindow();
-
-	// std::string saveWarning = "No saving in this version!";
-	// textWidth = ImGui::CalcTextSize(saveWarning.c_str()).x;
-	// textHeight = ImGui::CalcTextSize(saveWarning.c_str()).x;
-	// ImVec2 textPos = ImVec2(width - 5 - textWidth, height - 20);
-	// ImGui::GetForegroundDrawList()->AddText(
-	// 	textPos,
-	// 	IM_COL32(255, 0, 0, 255),
-	// 	"No saving in this version!"
-	// );
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
