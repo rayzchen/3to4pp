@@ -65,7 +65,9 @@ class PuzzleController {
         bool checkOutline(GLFWwindow *window, Shader *shader, bool flip);
         void resetPuzzle();
         void scramblePuzzle();
+        void performMove(MoveEntry entry);
         void performScramble();
+        void getScrambleTwists();
 
 	    static int cellKeys[];
     	static int directionKeys[];

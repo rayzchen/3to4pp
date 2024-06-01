@@ -19,8 +19,12 @@
 
 #include "control.h"
 #include "constants.h"
+#include <algorithm>
+#include <array>
 #include <random>
-#include <ctime>
+#include <map>
+#include <sstream>
+#include <fstream>
 #include <iostream>
 
 #ifdef _WIN32
@@ -49,25 +53,57 @@ PuzzleController::PuzzleController(PuzzleRenderer* renderer) {
 	this->renderer = renderer;
 	this->puzzle = renderer->puzzle;
     history = new MoveHistory();
-    rng.seed(std::time(NULL));
+    std::random_device rd;
+    rng.seed(rd());
     scrambleIndex = -1;
+
+    std::ifstream file("scramble.txt");
+    if (!file.fail()) {
+        file >> std::ws;
+        std::vector<std::array<int, 2>> moves;
+        std::array<int, 2> move;
+        char comma;
+        while (!file.eof()) {
+            file >> move[0] >> comma >> move[1];
+            if (comma == ',') {
+                moves.push_back(move);
+            }
+        }
+        MoveEntry entry;
+        for (size_t i = 0; i < moves.size(); i++) {
+            entry.cell = (CellLocation)moves[i][0];
+            if (moves[i][1] == -1) {
+                entry.type = GYRO;
+            } else {
+                entry.type = TURN;
+                entry.direction = (RotateDirection)moves[i][1];
+            }
+            performMove(entry);
+            scramble.push_back(entry);
+        }
+        getScrambleTwists();
+    }
 }
 
 PuzzleController::~PuzzleController() {
     delete this->history;
 }
 
+void PuzzleController::performMove(MoveEntry entry) {
+    switch (entry.type) {
+        case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
+        case ROTATE: puzzle->rotatePuzzle(entry.direction); break;
+        case GYRO: puzzle->gyroCell(entry.cell); break;
+        case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
+        case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.location); break;
+    }
+}
+
 bool PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
 	MoveEntry entry;
-    bool updated = renderer->animating;
+    bool updated;
 	if (renderer->updateAnimations(window, dt, &entry)) {
-        switch (entry.type) {
-            case TURN: puzzle->rotateCell(entry.cell, entry.direction); break;
-            case ROTATE: puzzle->rotatePuzzle(entry.direction); break;
-            case GYRO: puzzle->gyroCell(entry.cell); break;
-            case GYRO_OUTER: puzzle->gyroOuterSlice(); break;
-            case GYRO_MIDDLE: puzzle->gyroMiddleSlice(entry.location); break;
-        }
+        performMove(entry);
         if (scrambleIndex != -1) {
             if (renderer->pendingMoves.size() == 0) {
                 scrambleIndex++;
@@ -76,8 +112,9 @@ bool PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
         } else {
             history->insertMove(entry);
         }
+        updated = true;
 	}
-    return updated;
+    return updated || renderer->animating;
 }
 
 bool PuzzleController::checkMiddleGyro(int key, bool flip) {
@@ -331,20 +368,54 @@ void PuzzleController::resetPuzzle() {
     history->reset();
 }
 
+void rotate4in8(std::array<int, 8>& cells, std::array<int, 4> indices) {
+    int temp = cells[indices[0]];
+    for (int i = 0; i < 3; i++) {
+        cells[indices[i]] = cells[indices[i + 1]];
+    }
+    cells[indices[3]] = temp;
+}
+
+void rotate8bycell(std::array<int, 8>& cells, CellLocation cell) {
+    if (cell == RIGHT) {
+        rotate4in8(cells, {0, 6, 1, 7});
+    } else if (cell == LEFT) {
+        rotate4in8(cells, {1, 6, 0, 7});
+    } else if (cell == UP) {
+        rotate4in8(cells, {2, 6, 3, 7});
+    } else if (cell == DOWN) {
+        rotate4in8(cells, {3, 6, 2, 7});
+    } else if (cell == FRONT) {
+        rotate4in8(cells, {4, 6, 5, 7});
+    } else if (cell == BACK) {
+        rotate4in8(cells, {5, 6, 4, 7});
+    }
+}
+
 void PuzzleController::scramblePuzzle() {
-    static std::uniform_int_distribution<int> typeDist(0, 3);
-    static std::uniform_int_distribution<int> boolDist(0, 1);
+    static std::discrete_distribution<int> typeDist({2, 3});
     static std::uniform_int_distribution<int> directionDist(0, 5);
-    static std::uniform_int_distribution<int> cellDist(0, 7);
-    int scrambleLength = 30;
+    static std::discrete_distribution<int> cellDist({2, 2, 6, 6, 1, 1, 1, 1});
+    // only for visual effect, functionally unneeded
+    static std::uniform_int_distribution<int> boolDist(0, 1);
     MoveEntry entry;
+    entry.type = TURN;
+    int scrambleLength = 45;
+    CellLocation lastCell = (CellLocation)-1;
     for (int i = 0; i < scrambleLength; i++) {
-        if (typeDist(rng) == 0) {
+        if (typeDist(rng) == 0 && entry.type != GYRO) {
+            // don't include gyros in scramble length
+            i--;
             entry.type = GYRO;
             entry.cell = (CellLocation)(2 + directionDist(rng));
         } else {
             entry.type = TURN;
-            entry.cell = (CellLocation)cellDist(rng);
+            while (true) {
+                entry.cell = (CellLocation)cellDist(rng);
+                if (entry.cell != lastCell) break;
+                if (entry.cell == LEFT || entry.cell == RIGHT) break;
+            }
+            lastCell = entry.cell;
             switch (entry.cell) {
                 case IN:
                 case OUT:
@@ -370,19 +441,56 @@ void PuzzleController::scramblePuzzle() {
         }
         scramble.push_back(entry);
     }
+
+    // R, L, U, D, F, B, O, I
+    // Reorient to HSC default orientation
+    std::array<int, 8> cells = {0, 1, 4, 5, 3, 2, 6, 7};
+    for (size_t i = 0; i < scramble.size(); i++) {
+        if (scramble[i].type == GYRO) {
+            rotate8bycell(cells, scramble[i].cell);
+        }
+    }
+    entry.type = GYRO;
+    std::array<int, 3> colorsToFix = {4, 2, 7};
+    for (int i = 0; i < 3; i++) {
+        int index = std::distance(cells.begin(), std::find(cells.begin(), cells.end(), colorsToFix[i]));
+        if (index != colorsToFix[i]) {
+            // Move to I
+            if (index == 6) {
+                entry.cell = LEFT;
+                scramble.push_back(entry);
+                scramble.push_back(entry);
+                rotate8bycell(cells, entry.cell);
+                rotate8bycell(cells, entry.cell);
+            } else if (index < 6) {
+                entry.cell = (CellLocation)(2 + index);
+                scramble.push_back(entry);
+                rotate8bycell(cells, entry.cell);
+            }
+            // Move to desired location (gyro opposite)
+            if (colorsToFix[i] + 1 != 8) {
+                // Don't gyro if inner
+                entry.cell = (CellLocation)(2 + colorsToFix[i] + 1);
+                scramble.push_back(entry);
+                rotate8bycell(cells, entry.cell);
+            }
+        }
+    }
+
+    getScrambleTwists();
     scrambleIndex = 0;
     performScramble();
 }
 
 void PuzzleController::performScramble() {
-    static float renderSpeed;
+    static float origRenderSpeed;
     if (scrambleIndex == 0) {
-        renderSpeed = renderer->animationSpeed;
-        renderer->animationSpeed = 20.0f;
+        origRenderSpeed = renderer->animationSpeed;
+        renderer->animationSpeed = 40.0f;
     }
     if ((size_t)scrambleIndex == scramble.size()) {
         scrambleIndex = -1;
-        renderer->animationSpeed = renderSpeed;
+        renderer->animationSpeed = origRenderSpeed;
     } else {
         if (scramble[scrambleIndex].type == GYRO) {
             startGyro(scramble[scrambleIndex].cell);
@@ -390,6 +498,60 @@ void PuzzleController::performScramble() {
             startCellMove(scramble[scrambleIndex].cell, scramble[scrambleIndex].direction);
         }
     }
+}
+
+void PuzzleController::getScrambleTwists() {
+    // R, L, U, D, F, B, O, I
+    // Adjust to HSC default orientation
+    std::array<int, 8> cells = {0, 1, 4, 5, 3, 2, 6, 7};
+    std::map<int, std::array<int, 6>> neighbours = {
+        {0, {6, 7, 2, 3, 4, 5}},
+        {1, {7, 6, 2, 3, 4, 5}},
+        {2, {0, 1, 6, 7, 4, 5}},
+        {3, {0, 1, 7, 6, 4, 5}},
+        {4, {0, 1, 2, 3, 6, 7}},
+        {5, {0, 1, 2, 3, 7, 6}},
+        {6, {1, 0, 2, 3, 4, 5}},
+        {7, {0, 1, 2, 3, 4, 5}}
+    };
+    std::ostringstream hscScramble;
+    for (size_t i = 0; i < scramble.size(); i++) {
+        if (scramble[i].type == GYRO) {
+            rotate8bycell(cells, scramble[i].cell);
+        } else {
+            int cell1, cell2;
+            if (scramble[i].cell == IN) {
+                cell1 = 7;
+            } else if (scramble[i].cell == OUT) {
+                cell1 = 6;
+            } else {
+                cell1 = (int)scramble[i].cell - 2;
+            }
+            cell2 = neighbours[cell1][(int)scramble[i].direction];
+            int twistDir = -1;
+            for (int i = 0; i < 6; i++) {
+                if (neighbours[cells[cell1]][i] == cells[cell2]) {
+                    twistDir = i;
+                    break;
+                }
+            }
+            if (cell1 >= 2 && cell1 <= 5) {
+                twistDir += 6;
+            }
+            hscScramble << cells[cell1] << "," << twistDir << "," << 1 << " ";
+        }
+    }
+
+    std::ostringstream physScramble;
+    for (size_t i = 0; i < scramble.size(); i++) {
+        if (scramble[i].type == GYRO) {
+            physScramble << (int)scramble[i].cell << "," << -1 << " ";
+        } else {
+            physScramble << scramble[i].cell << "," << (int)scramble[i].direction << " ";
+        }
+    }
+    std::cout << "scramble: >\n  " << hscScramble.str() << std::endl;
+    std::cout << "phys_scramble: >\n  " << physScramble.str() << std::endl;
 }
 
 std::string PuzzleController::getHistoryStatus() {
