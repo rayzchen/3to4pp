@@ -22,6 +22,7 @@
 #include <glad/gl.h>
 #include <cstdlib>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include "gui.h"
@@ -67,7 +68,12 @@ GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int w
 	ImGuiIO& io = ImGui::GetIO();
 	float xscale, yscale;
 	glfwGetWindowContentScale(window, &xscale, &yscale);
-	io.Fonts->AddFontFromFileTTF(fontFile, 20 * xscale);
+	hudFont = io.Fonts->AddFontFromFileTTF(fontFile, 20 * xscale);
+	uiFont = io.Fonts->AddFontFromFileTTF(fontFile, 16 * xscale);
+
+#ifndef NO_DEMO_WINDOW
+	showDemoWindow = false;
+#endif
 }
 
 GuiRenderer::~GuiRenderer() {
@@ -96,16 +102,56 @@ void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int hei
 }
 
 void GuiRenderer::renderGui(Shader *shader) {
-	int white = IM_COL32_WHITE;
-	int red = IM_COL32(255, 127, 127, 255);
-	int blue = IM_COL32(127, 127, 255, 255);
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
+	ImGui::PushFont(uiFont);
+	displayMenuBar();
+	displayStatusBar();
 #ifndef NO_DEMO_WINDOW
-	ImGui::ShowDemoWindow();
+	if (showDemoWindow) {
+		ImGui::ShowDemoWindow();
+	}
 #endif
+	ImGui::PopFont();
+
+	ImGui::PushFont(hudFont);
+	displayHUD();
+	ImGui::PopFont();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void GuiRenderer::displayMenuBar() {
+	if (ImGui::BeginMainMenuBar()) {
+		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("Open", "Ctrl+O")) {}
+			if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Edit")) {
+			if (ImGui::MenuItem("Undo", "Z")) {}
+            if (ImGui::MenuItem("Redo", "Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+			if (ImGui::MenuItem("Reset", "Ctrl+R")) {}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Tools")) {
+#ifndef NO_DEMO_WINDOW
+			if (ImGui::MenuItem("Show demo window", NULL, &showDemoWindow)) {}
+#endif
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
+}
+
+void GuiRenderer::displayHUD() {
+	const int white = IM_COL32_WHITE;
+	const int red = IM_COL32(255, 127, 127, 255);
+	const int blue = IM_COL32(127, 127, 255, 255);
 
 	int lineHeight = ImGui::CalcTextSize("").y;
 	int textWidth;
@@ -113,42 +159,47 @@ void GuiRenderer::renderGui(Shader *shader) {
 		textWidth = getTextWidth(helpText[10]);
 		for (size_t i = 0; i < helpText.size(); i++) {
 			float x = width - 5 - textWidth;
-			float y = 5 + (i + 1) * lineHeight;
+			float y = 5 + (i + 1) * lineHeight + ImGui::GetFrameHeight();
 			if (i == 0) x = width - 5 - (textWidth + getTextWidth(helpText[i])) / 2;
 			renderText(helpText[i], x, y, white);
 		}
 
 		for (size_t i = 0; i < creditsText.size(); i++) {
 			float x = 5;
-			float y = height - 5 - (creditsText.size() - i) * lineHeight;
+			float y = height - 5 - (creditsText.size() - i) * lineHeight - ImGui::GetFrameHeight();
 			textWidth = getTextWidth(creditsText[i][0]);
 			renderText(creditsText[i][0], x, y, white);
 			renderText(creditsText[i][1], x + textWidth, y, blue);
 		}
-		renderText("links dont work lol", 5, height - 5 - (creditsText.size() + 1) * lineHeight, red);
+		float y = height - 5 - (creditsText.size() + 1) * lineHeight - ImGui::GetFrameHeight();
+		renderText("links dont work lol", 5, y, red);
 	}
 
 	std::string saveWarning = "No saving in this version!";
 	textWidth = getTextWidth(saveWarning);
-	renderText(saveWarning, width - 5 - textWidth, 5, red);
+	renderText(saveWarning, width - 5 - textWidth, 5 + ImGui::GetFrameHeight(), red);
 
 	std::string helpHint = "Help: H";
 	textWidth = getTextWidth(helpHint);
-	renderText(helpHint, width - 5 - textWidth, height - 5 - lineHeight, white);
+	renderText(helpHint, width - 5 - textWidth, height - 5 - lineHeight - ImGui::GetFrameHeight(), white);
 
 	std::ostringstream stream;
 	stream << "Move Count: " << history->getTurnCount();
 	textWidth = getTextWidth(stream.str());
-	renderText(stream.str(), (width - textWidth) / 2, 5, white);
+	renderText(stream.str(), (width - textWidth) / 2, 5 + ImGui::GetFrameHeight(), white);
+}
 
-	std::string status = controller->getHistoryStatus();
-	if (!status.empty()) {
-		textWidth = getTextWidth(status);
-		renderText(status, (width - textWidth) / 2, height - lineHeight, white);
+void GuiRenderer::displayStatusBar() {
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+    float height = ImGui::GetFrameHeight();
+    if (ImGui::BeginViewportSideBar("##StatusBar", viewport, ImGuiDir_Down, height, window_flags)) {
+	    if (ImGui::BeginMenuBar()) {
+	        ImGui::Text(controller->getHistoryStatus().c_str());
+	        ImGui::EndMenuBar();
+	    }
+	    ImGui::End();
 	}
-
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void GuiRenderer::toggleHelp() {

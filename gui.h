@@ -22,6 +22,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 #include "render.h"
 #include "control.h"
 
@@ -43,6 +44,9 @@ class GuiRenderer {
 		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 		int getTextWidth(std::string text);
 		void renderGui(Shader *shader);
+		void displayMenuBar();
+		void displayHUD();
+		void displayStatusBar();
 		void toggleHelp();
 		bool captureMouse();
 
@@ -51,6 +55,11 @@ class GuiRenderer {
         MoveHistory *history;
 		int width, height;
 		bool showHelp;
+		ImFont *hudFont, *uiFont;
+
+#ifndef NO_DEMO_WINDOW
+		bool showDemoWindow;
+#endif
 };
 
 #endif // gui.h
