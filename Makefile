@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  2 2024) on Sun Jun  2 01:02:40 2024
+# Created by gmakemake (Ubuntu Jun  2 2024) on Sun Jun 02 17:17:30 2024
 #
 
 #
@@ -11,13 +11,13 @@
 .c.o:
 		$(COMPILE.c) -o $@ $<
 .C.o:
-		$(COMPILE.cc) -o $@ $<
+		$(COMPILE.cc) -o $@  $<
 .cpp.o:
-		$(COMPILE.cc) -o $@ $<
+		$(COMPILE.cc) -o $@  $<
 .S.s:
 		$(CPP) -o $*.s $<
 .s.o:
-		$(COMPILE.cc) -o $@ $<
+		$(COMPILE.cc) -o $@  $<
 .c.a:
 		$(COMPILE.c) -o $% $<
 		$(AR) $(ARFLAGS) $@ $%
@@ -126,7 +126,10 @@ endif
 
 $(IMGUI_OBJFILES): CXXFLAGS += -fPIC
 $(LIBIMGUI): $(IMGUI_OBJFILES)
-	$(LINK.c) -shared -o $@ $^
+	rm -f $@
+ifeq ($(OS),Windows_NT)
+	$(LINK.cc) -shared -o $@ $^ lib/*.dll
+endif
 clean: OBJFILES += $(IMGUI_OBJFILES)
 
 CCLIBFLAGS += -Wl,-rpath=\$$ORIGIN -limgui

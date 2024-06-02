@@ -17,7 +17,10 @@ endif
 
 $(IMGUI_OBJFILES): CXXFLAGS += -fPIC
 $(LIBIMGUI): $(IMGUI_OBJFILES)
-	$(LINK.c) -shared -o $@ $^
+	rm -f $@
+ifeq ($(OS),Windows_NT)
+	$(LINK.cc) -shared -o $@ $^ lib/*.dll
+endif
 clean: OBJFILES += $(IMGUI_OBJFILES)
 
 CCLIBFLAGS += -Wl,-rpath=\$$ORIGIN -limgui
