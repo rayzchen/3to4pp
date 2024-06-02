@@ -1,12 +1,29 @@
 .PHONY: all run addicon build shared clean realclean
 
-OBJFILES += imgui/imgui.o \
-			imgui/imgui_draw.o \
-			imgui/imgui_demo.o \
-			imgui/imgui_tables.o \
-			imgui/imgui_widgets.o \
-			imgui/backends/imgui_impl_glfw.o \
-			imgui/backends/imgui_impl_opengl3.o
+IMGUI_OBJFILES = imgui/imgui.o \
+				imgui/imgui_draw.o \
+				imgui/imgui_demo.o \
+				imgui/imgui_tables.o \
+				imgui/imgui_widgets.o \
+				imgui/backends/imgui_impl_glfw.o \
+				imgui/backends/imgui_impl_opengl3.o
+
+ifeq ($(MAKECMDGOALS),shared)
+ifeq ($(OS),Windows_NT)
+LIBIMGUI = lib/imgui.dll
+else
+LIBIMGUI = lib/libimgui.so
+endif
+
+$(IMGUI_OBJFILES): CXXFLAGS += -fPIC
+$(LIBIMGUI): $(IMGUI_OBJFILES)
+	$(LINK.c) -shared -o $@ $^
+clean: OBJFILES += $(IMGUI_OBJFILES)
+
+CCLIBFLAGS += -Wl,-rpath=\$$ORIGIN -limgui
+else
+OBJFILES += $(IMGUI_OBJFILES)
+endif
 
 ifeq ($(OS),Windows_NT)
 resources.o: resources.rc icons/icons.ico
@@ -14,7 +31,7 @@ resources.o: resources.rc icons/icons.ico
 OBJFILES += resources.o
 endif
 
-3to4++:	3to4++.o $(OBJFILES) $(IMGUI_OBJFILES)
+3to4++:	3to4++.o $(LIBIMGUI) $(OBJFILES)
 
 run:	3to4++
 	./3to4++
@@ -29,6 +46,8 @@ shared: build
 ifeq ($(OS),Windows_NT)
 	ldd 3to4++ | grep -v "WINDOWS" | sed -e 's/\t.*\.dll => \| \(.*\)\|not found//g' | xargs -I {} cp {} 3to4pp
 	cp lib/*.dll 3to4pp
+else
+	cp lib/*.so 3to4pp
 endif
 
 release:
