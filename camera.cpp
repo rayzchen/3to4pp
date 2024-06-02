@@ -19,6 +19,7 @@
 
 #include <GLFW/glfw3.h>
 #include <linmath.h>
+#include <cmath>
 #include "constants.h"
 #include "camera.h"
 
