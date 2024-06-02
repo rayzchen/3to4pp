@@ -182,11 +182,6 @@ void GuiRenderer::displayHUD() {
 	std::string helpHint = "Help: H";
 	textWidth = getTextWidth(helpHint);
 	renderText(helpHint, width - 5 - textWidth, height - 5 - lineHeight - ImGui::GetFrameHeight(), white);
-
-	std::ostringstream stream;
-	stream << "Move Count: " << history->getTurnCount();
-	textWidth = getTextWidth(stream.str());
-	renderText(stream.str(), (width - textWidth) / 2, 5 + ImGui::GetFrameHeight(), white);
 }
 
 void GuiRenderer::displayStatusBar() {
@@ -196,6 +191,15 @@ void GuiRenderer::displayStatusBar() {
     if (ImGui::BeginViewportSideBar("##StatusBar", viewport, ImGuiDir_Down, height, window_flags)) {
 	    if (ImGui::BeginMenuBar()) {
 	        ImGui::Text(controller->getHistoryStatus().c_str());
+
+			std::ostringstream stream;
+			stream << "Move Count: " << history->getTurnCount();
+			std::string text = stream.str();
+
+	        ImGui::SameLine(
+	        	ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(text.c_str()).x - 5
+	        );
+	        ImGui::Text(text.c_str());
 	        ImGui::EndMenuBar();
 	    }
 	    ImGui::End();
