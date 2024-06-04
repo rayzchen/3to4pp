@@ -37,7 +37,7 @@ const char* GuiRenderer::fontFile = "/usr/share/fonts/truetype/arial.ttf";
 // todo: replace with keybinds
 std::vector<std::string> GuiRenderer::helpText = {
 	"Controls:",
-	"Left/Right Click + Drag - Move Camera",
+	"Left Click + Drag - Move Camera",
 	"Scroll Wheel - Zoom In / Out",
 	"Middle Click + Drag - Explode Pieces",
 	"W, E, R, S, D, F, C, V - Select Cell",
@@ -159,7 +159,7 @@ void GuiRenderer::displayHUD() {
 		textWidth = getTextWidth(helpText[10]);
 		for (size_t i = 0; i < helpText.size(); i++) {
 			float x = width - 5 - textWidth;
-			float y = 5 + (i + 1) * lineHeight + ImGui::GetFrameHeight();
+			float y = (i + 1) * lineHeight + ImGui::GetFrameHeight();
 			if (i == 0) x = width - 5 - (textWidth + getTextWidth(helpText[i])) / 2;
 			renderText(helpText[i], x, y, white);
 		}
@@ -177,7 +177,7 @@ void GuiRenderer::displayHUD() {
 
 	std::string saveWarning = "No saving in this version!";
 	textWidth = getTextWidth(saveWarning);
-	renderText(saveWarning, width - 5 - textWidth, 5 + ImGui::GetFrameHeight(), red);
+	renderText(saveWarning, width - 5 - textWidth, ImGui::GetFrameHeight(), red);
 
 	std::string helpHint = "Help: H";
 	textWidth = getTextWidth(helpHint);
