@@ -52,7 +52,7 @@ class Window {
         bool vsync;
         bool fullscreen;
         int maxFrames;
-        bool updateFlag;
+        bool updateFlag, extraFrame;
         static Window *current;
 };
 

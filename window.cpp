@@ -124,6 +124,7 @@ void Window::setCallbacks() {
 
 void Window::setUpdateFlag() {
     updateFlag = true;
+    extraFrame = true;
 }
 
 void Window::run() {
@@ -138,7 +139,7 @@ void Window::run() {
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(1.0, 1.0);
 
-    bool firstFrame = true;
+    setUpdateFlag();
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -150,21 +151,20 @@ void Window::run() {
         double tick = glfwGetTime();
         double dt = tick - lastTime;
         lastTime = tick;
-        std::cout << 1 / dt << std::endl;
         if (renderer->updateMouse(window, dt)) setUpdateFlag();
         if (camera->updateMouse(window, dt)) setUpdateFlag();
         if (controller->updatePuzzle(window, dt)) setUpdateFlag();
 
         if (updateFlag) {
-            updateFlag = false;
+            if (extraFrame) {
+                extraFrame = false;
+            } else {
+                updateFlag = false;
+            }
             draw();
         } else {
             glfwWaitEvents();
             lastTime = glfwGetTime() - dt;
-            if (firstFrame) {
-                setUpdateFlag();
-                firstFrame = false;
-            }
         }
     }
 }
