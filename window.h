@@ -34,6 +34,7 @@ class Window {
         void run();
         void draw();
         void close();
+        void updateFunc();
         void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         void windowPosCallback(GLFWwindow* window, int xpos, int ypos);
         void mouseButtonCallback(GLFWwindow* window, int button, int action);

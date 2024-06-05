@@ -45,6 +45,7 @@ Window* Window::current;
 Window::Window() {
     Window::current = this;
     if (!glfwInit()) {
+        showError("Failed to init GLFW");
         exit(EXIT_FAILURE);
     }
 
@@ -142,30 +143,34 @@ void Window::run() {
     setUpdateFlag();
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        if (!(fullscreen || maxFrames == 0)) {
-            while (glfwGetTime() - lastTime < 1.0f / maxFrames) {
-                glfwWaitEventsTimeout(1.0 / maxFrames - (glfwGetTime() - lastTime));
-            }
-        }
-        double tick = glfwGetTime();
-        double dt = tick - lastTime;
-        lastTime = tick;
-        if (renderer->updateMouse(window, dt)) setUpdateFlag();
-        if (camera->updateMouse(window, dt)) setUpdateFlag();
-        if (controller->updatePuzzle(window, dt)) setUpdateFlag();
+        updateFunc();
+    }
+}
 
-        if (updateFlag) {
-            if (extraFrame) {
-                extraFrame = false;
-            } else {
-                updateFlag = false;
-            }
-            draw();
-        } else {
-            glfwWaitEvents();
-            lastTime = glfwGetTime() - dt;
+void Window::updateFunc() {
+    glfwPollEvents();
+    if (!(fullscreen || maxFrames == 0)) {
+        while (glfwGetTime() - lastTime < 1.0f / maxFrames) {
+            glfwWaitEventsTimeout(1.0 / maxFrames - (glfwGetTime() - lastTime));
         }
+    }
+    double tick = glfwGetTime();
+    double dt = tick - lastTime;
+    lastTime = tick;
+    if (renderer->updateMouse(window, dt)) setUpdateFlag();
+    if (camera->updateMouse(window, dt)) setUpdateFlag();
+    if (controller->updatePuzzle(window, dt)) setUpdateFlag();
+
+    if (updateFlag) {
+        if (extraFrame) {
+            extraFrame = false;
+        } else {
+            updateFlag = false;
+        }
+        draw();
+    } else {
+        glfwWaitEvents();
+        lastTime = glfwGetTime() - dt;
     }
 }
 
