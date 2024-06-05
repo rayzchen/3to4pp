@@ -63,24 +63,31 @@ PuzzleController::PuzzleController(PuzzleRenderer* renderer) {
         std::vector<std::array<int, 2>> moves;
         std::array<int, 2> move;
         char comma;
-        while (!file.eof()) {
+        while (true) {
             file >> move[0] >> comma >> move[1];
+            std::cout << moves.size() << std::endl;
+            if (file.eof()) {
+                break;
+            }
             if (comma == ',') {
                 moves.push_back(move);
             }
         }
-        MoveEntry entry;
         for (size_t i = 0; i < moves.size(); i++) {
-            entry.cell = (CellLocation)moves[i][0];
+            CellLocation cell = (CellLocation)moves[i][0];
             if (moves[i][1] == -1) {
-                entry.type = GYRO;
+                startGyro(cell);
             } else {
-                entry.type = TURN;
-                entry.direction = (RotateDirection)moves[i][1];
+                startCellMove(cell, (RotateDirection)moves[i][1]);
             }
-            performMove(entry);
-            scramble.push_back(entry);
+            while (renderer->pendingMoves.size()) {
+                MoveEntry entry = renderer->pendingMoves.front();
+                renderer->pendingMoves.pop();
+                performMove(entry);
+                scramble.push_back(entry);
+            }
         }
+        renderer->animating = false;
         getScrambleTwists();
     }
 }
