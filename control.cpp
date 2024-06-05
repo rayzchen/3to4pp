@@ -322,7 +322,7 @@ void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int 
     if (action == GLFW_PRESS) {
         if (mods == 0) {
             if (!(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
-                historyStatus.clear();
+                status.clear();
             }
             if (checkMiddleGyro(key, flip)) return;
             if (checkDirectionalMove(window, key, flip)) return;
@@ -335,28 +335,18 @@ void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int 
                 entry.location = -1 * puzzle->outerSlicePos;
                 renderer->scheduleMove(entry);
             } else if (key == GLFW_KEY_Z) {
-                MoveEntry entry;
-                if (history->undoMove(&entry)) {
-                    renderer->scheduleMove(entry);
-                    historyStatus = "Undid 1 move!";
-                } else {
-                    historyStatus = "No moves left!";
-                }
+                undoMove();
             } else if (key == GLFW_KEY_Y) {
-                MoveEntry entry;
-                if (history->redoMove(&entry)) {
-                    renderer->scheduleMove(entry);
-                    historyStatus = "Redid 1 move!";
-                } else {
-                    historyStatus = "No moves left!";
-                }
+                redoMove();
             }
         } else if (mods & GLFW_MOD_CONTROL) {
             if (key == GLFW_KEY_F) {
                 resetPuzzle();
                 scramblePuzzle();
+                status = "Scrambled puzzle!";
             } else if (key == GLFW_KEY_R) {
                 resetPuzzle();
+                status = "Reset puzzle!";
             }
         }
     }
@@ -366,6 +356,26 @@ void PuzzleController::resetPuzzle() {
     puzzle->resetPuzzle();
     scramble.clear();
     history->reset();
+}
+
+void PuzzleController::undoMove() {
+    MoveEntry entry;
+    if (history->undoMove(&entry)) {
+        renderer->scheduleMove(entry);
+        status = "Undid 1 move!";
+    } else {
+        status = "No moves left!";
+    }
+}
+
+void PuzzleController::redoMove() {
+    MoveEntry entry;
+    if (history->redoMove(&entry)) {
+        renderer->scheduleMove(entry);
+        status = "Redid 1 move!";
+    } else {
+        status = "No moves left!";
+    }
 }
 
 void rotate4in8(std::array<int, 8>& cells, std::array<int, 4> indices) {
@@ -554,8 +564,8 @@ void PuzzleController::getScrambleTwists() {
     std::cout << "phys_scramble: >\n  " << physScramble.str() << std::endl;
 }
 
-std::string PuzzleController::getHistoryStatus() {
-    return historyStatus;
+std::string PuzzleController::getStatus() {
+    return status;
 }
 
 MoveHistory::MoveHistory() {
@@ -615,6 +625,14 @@ bool MoveHistory::redoMove(MoveEntry *entry) {
     redoList.pop_back();
     redoing = true;
     return true;
+}
+
+bool MoveHistory::canUndo() {
+    return history.size() > 0;
+}
+
+bool MoveHistory::canRedo() {
+    return redoList.size() > 0;
 }
 
 int MoveHistory::getTurnCount() {

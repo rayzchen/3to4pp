@@ -38,6 +38,8 @@ class MoveHistory {
 		MoveEntry getOpposite(MoveEntry entry);
 		bool undoMove(MoveEntry* entry);
 		bool redoMove(MoveEntry* entry);
+		bool canUndo();
+		bool canRedo();
 		int getTurnCount();
 
 	private:
@@ -61,13 +63,16 @@ class PuzzleController {
         bool checkDirectionKey(int key, RotateDirection* direction, bool flip);
         void startCellMove(CellLocation cell, RotateDirection direction);
         void keyCallback(GLFWwindow* window, int key, int action, int mods, bool flip);
-        std::string getHistoryStatus();
+        std::string getStatus();
         bool checkOutline(GLFWwindow *window, Shader *shader, bool flip);
-        void resetPuzzle();
-        void scramblePuzzle();
         void performMove(MoveEntry entry);
         void performScramble();
         void getScrambleTwists();
+
+        void resetPuzzle();
+        void scramblePuzzle();
+        void undoMove();
+        void redoMove();
 
 	    static int cellKeys[];
     	static int directionKeys[];
@@ -76,7 +81,7 @@ class PuzzleController {
 		PuzzleRenderer *renderer;
 		Puzzle *puzzle;
 		MoveHistory *history;
-		std::string historyStatus;
+		std::string status;
 		std::mt19937 rng;
 		int scrambleIndex;
 		std::vector<MoveEntry> scramble;

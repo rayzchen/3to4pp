@@ -50,6 +50,8 @@ class GuiRenderer {
 		void toggleHelp();
 		bool captureMouse();
 
+		void resetPuzzle();
+
 	private:
         PuzzleController *controller;
         MoveHistory *history;

@@ -132,10 +132,10 @@ void GuiRenderer::displayMenuBar() {
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Edit")) {
-			if (ImGui::MenuItem("Undo", "Z")) {}
-            if (ImGui::MenuItem("Redo", "Y", false, false)) {}  // Disabled item
+			if (ImGui::MenuItem("Undo", "Z", false, history->canUndo())) controller->undoMove();
+            if (ImGui::MenuItem("Redo", "Y", false, history->canRedo())) controller->redoMove();
             ImGui::Separator();
-			if (ImGui::MenuItem("Reset", "Ctrl+R")) {}
+			if (ImGui::MenuItem("Reset", "Ctrl+R")) controller->resetPuzzle();
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Tools")) {
@@ -190,7 +190,7 @@ void GuiRenderer::displayStatusBar() {
     float height = ImGui::GetFrameHeight();
     if (ImGui::BeginViewportSideBar("##StatusBar", viewport, ImGuiDir_Down, height, window_flags)) {
 	    if (ImGui::BeginMenuBar()) {
-	        ImGui::Text(controller->getHistoryStatus().c_str());
+	        ImGui::Text(controller->getStatus().c_str());
 
 			std::ostringstream stream;
 			stream << "Move Count: " << history->getTurnCount();
