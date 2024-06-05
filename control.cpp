@@ -485,7 +485,7 @@ void PuzzleController::scramblePuzzle() {
                 rotate8bycell(cells, entry.cell);
             }
             // Move to desired location (gyro opposite)
-            if (colorsToFix[i] + 1 != 8) {
+            if (colorsToFix[i] != 7) {
                 // Don't gyro if inner
                 entry.cell = (CellLocation)(2 + colorsToFix[i] + 1);
                 scramble.push_back(entry);
@@ -518,44 +518,32 @@ void PuzzleController::performScramble() {
 }
 
 void PuzzleController::getScrambleTwists() {
-    // R, L, U, D, F, B, O, I
-    // Adjust to HSC default orientation
-    std::array<int, 8> cells = {0, 1, 4, 5, 3, 2, 6, 7};
-    std::map<int, std::array<int, 6>> neighbours = {
-        {0, {6, 7, 2, 3, 4, 5}},
-        {1, {7, 6, 2, 3, 4, 5}},
-        {2, {0, 1, 6, 7, 4, 5}},
-        {3, {0, 1, 7, 6, 4, 5}},
-        {4, {0, 1, 2, 3, 6, 7}},
-        {5, {0, 1, 2, 3, 7, 6}},
-        {6, {1, 0, 2, 3, 4, 5}},
-        {7, {0, 1, 2, 3, 4, 5}}
+    std::map<CellLocation, std::pair<int, int>> gyroMoves = {
+        {RIGHT, {2, 4}}, // U cell turns F
+        {LEFT, {2, 5}}, // U cell turns B
+        {UP, {4, 0}}, // F cell turns R
+        {DOWN, {4, 1}}, // F cell turns L
+        {FRONT, {2, 1}}, // U cell turns R
+        {BACK, {2, 0}} // U cell turns L
     };
     std::ostringstream hscScramble;
+    hscScramble << 0 << "," << 0 << "," << 7 << " ";
     for (size_t i = 0; i < scramble.size(); i++) {
         if (scramble[i].type == GYRO) {
-            rotate8bycell(cells, scramble[i].cell);
+            hscScramble << gyroMoves[scramble[i].cell].first << "," << gyroMoves[scramble[i].cell].second;
+            hscScramble << "," << 7 << " ";
         } else {
-            int cell1, cell2;
+            int cell, direction;
             if (scramble[i].cell == IN) {
-                cell1 = 7;
+                cell = 7;
             } else if (scramble[i].cell == OUT) {
-                cell1 = 6;
+                cell = 6;
             } else {
-                cell1 = (int)scramble[i].cell - 2;
+                cell = (int)scramble[i].cell - 2;
             }
-            cell2 = neighbours[cell1][(int)scramble[i].direction];
-            int twistDir = -1;
-            for (int i = 0; i < 6; i++) {
-                if (neighbours[cells[cell1]][i] == cells[cell2]) {
-                    twistDir = i;
-                    break;
-                }
-            }
-            if (cell1 >= 2 && cell1 <= 5) {
-                twistDir += 6;
-            }
-            hscScramble << cells[cell1] << "," << twistDir << "," << 1 << " ";
+            direction = (int)scramble[i].direction;
+            if (cell >= 2 && cell < 6) direction += 6;
+            hscScramble << cell << "," << direction << "," << 1 << " ";
         }
     }
 
