@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 17:49:03 2024
+# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 19:58:38 2024
 #
 
 #
@@ -77,14 +77,14 @@ endif
 ########## End of flags from header.mak
 
 
-CPP_FILES =	3to4++.cpp camera.cpp control.cpp gui.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
+CPP_FILES =	3to4++.cpp camera.cpp control.cpp font.cpp gui.cpp pieces.cpp puzzle.cpp render.cpp shaders.cpp window.cpp
 C_FILES =	gl.c
 PS_FILES =	
 S_FILES =	
-H_FILES =	camera.h constants.h control.h gui.h pieces.h puzzle.h render.h shaders.h window.h
+H_FILES =	camera.h constants.h control.h font.h gui.h pieces.h puzzle.h render.h shaders.h window.h
 SOURCEFILES =	$(H_FILES) $(CPP_FILES) $(C_FILES) $(S_FILES)
 .PRECIOUS:	$(SOURCEFILES)
-OBJFILES =	camera.o control.o gui.o pieces.o puzzle.o render.o shaders.o window.o gl.o 
+OBJFILES =	camera.o control.o font.o gui.o pieces.o puzzle.o render.o shaders.o window.o gl.o 
 
 #
 # Main targets
@@ -102,7 +102,8 @@ all:	3to4++
 3to4++.o:	camera.h control.h gui.h pieces.h puzzle.h render.h window.h
 camera.o:	camera.h constants.h
 control.o:	constants.h control.h pieces.h puzzle.h render.h
-gui.o:	control.h gui.h pieces.h puzzle.h render.h
+font.o:	
+gui.o:	control.h font.h gui.h pieces.h puzzle.h render.h
 pieces.o:	pieces.h
 puzzle.o:	puzzle.h
 render.o:	constants.h control.h pieces.h puzzle.h render.h
@@ -178,8 +179,7 @@ release:
 emscripten:
 	rm -rf web/3to4++*
 	em++ $(CPPFLAGS) $(CPP_FILES) $(C_FILES) $(IMGUI_SOURCEFILES) \
-		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3 \
-		--preload-file NotoSans.ttf@NotoSans.ttf
+		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3
 
 ########## End of targets from targets.mak
 

@@ -26,13 +26,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include "gui.h"
+#include "font.h"
 #include "control.h"
-
-#ifdef _WIN32
-const char* GuiRenderer::fontFile = "C:\\Windows\\Fonts\\segoeui.ttf";
-#else
-const char* GuiRenderer::fontFile = "NotoSans.ttf";
-#endif
 
 // todo: replace with keybinds
 std::vector<std::string> GuiRenderer::helpText = {
@@ -70,8 +65,16 @@ GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int w
 
 	float xscale, yscale;
 	glfwGetWindowContentScale(window, &xscale, &yscale);
-	hudFont = io.Fonts->AddFontFromFileTTF(fontFile, 20 * xscale);
-	uiFont = io.Fonts->AddFontFromFileTTF(fontFile, 16 * xscale);
+	hudFont = io.Fonts->AddFontFromMemoryCompressedTTF(
+		notosans_compressed_data,
+		notosans_compressed_size,
+		20 * xscale
+	);
+	uiFont = io.Fonts->AddFontFromMemoryCompressedTTF(
+		notosans_compressed_data,
+		notosans_compressed_size,
+		16 * xscale
+	);
 
 #ifndef NO_DEMO_WINDOW
 	showDemoWindow = false;

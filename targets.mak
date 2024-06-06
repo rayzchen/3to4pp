@@ -64,5 +64,4 @@ release:
 emscripten:
 	rm -rf web/3to4++*
 	em++ $(CPPFLAGS) $(CPP_FILES) $(C_FILES) $(IMGUI_SOURCEFILES) \
-		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3 \
-		--preload-file NotoSans.ttf@NotoSans.ttf
+		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3
