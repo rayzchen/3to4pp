@@ -1,5 +1,5 @@
-CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
-CXXFLAGS = --std=c++11 -Iimgui/ -Iimgui/backends/
+CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -pedantic -Iinclude -Iimgui/ -Iimgui/backends/
+CXXFLAGS = --std=c++11
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32
 else
@@ -22,4 +22,9 @@ ifeq ($(MAKECMDGOALS),shared)
 		CCLIBFLAGS += lib/*.dll
 	endif
 	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
+endif
+
+ifeq ($(MAKECMDGOALS),emscripten)
+	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
+	CPPFLAGS += -Wno-dollar-in-identifier-extension -x c++ -lglfw3
 endif

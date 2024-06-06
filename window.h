@@ -43,7 +43,7 @@ class Window {
 
     private:
         GLFWwindow *window;
-        Shader *modelShader, *guiShader;
+        Shader *modelShader;
         Camera *camera;
         PuzzleRenderer *renderer;
         GuiRenderer *gui;

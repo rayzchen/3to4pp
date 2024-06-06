@@ -36,6 +36,10 @@
 #include <GLFW/glfw3native.h>
 #include <windows.h>
 #endif
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
 
 #define WIDTH 960
 #define HEIGHT 540
@@ -89,7 +93,11 @@ Window::Window() {
     vsync = true;
     fullscreen = false;
     updateFlag = true;
+#ifdef __EMSCRIPTEN__
+    maxFrames = 0;
+#else
     maxFrames = 60;
+#endif
 }
 
 void Window::setCallbacks() {
@@ -127,6 +135,15 @@ void Window::setUpdateFlag() {
     extraFrame = true;
 }
 
+#ifdef __EMSCRIPTEN__
+EM_BOOL onCanvasSizeChanged(int event_type, const EmscriptenUiEvent* ui_event, void* user_data) {
+    double canvas_width, canvas_height;
+    emscripten_get_element_css_size("#canvas-container", &canvas_width, &canvas_height);
+    glfwSetWindowSize(glfwGetCurrentContext(), (int)canvas_width, (int)canvas_height);
+    return true;
+}
+#endif
+
 void Window::run() {
     lastTime = glfwGetTime();
     camera->setPitch(M_PI / 180 * -20);
@@ -140,10 +157,17 @@ void Window::run() {
     glPolygonOffset(1.0, 1.0);
 
     setUpdateFlag();
+
+#ifdef __EMSCRIPTEN__
+    onCanvasSizeChanged(EMSCRIPTEN_EVENT_RESIZE, NULL, window);
+    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, window, false, onCanvasSizeChanged);
+    emscripten_set_main_loop([]() {Window::current->updateFunc(); Window::current->setUpdateFlag();}, maxFrames, true);
+#else
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
         updateFunc();
     }
+#endif
 }
 
 void Window::updateFunc() {

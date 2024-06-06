@@ -19,8 +19,14 @@
 
 #include "shaders.h"
 
-const char *Shaders::modelVertex = R"(
-#version 330 core
+#ifdef __EMSCRIPTEN__
+const char *Shaders::modelVertex = "#version 300 es"
+#else
+const char *Shaders::modelVertex = "#version 330 core"
+#endif
+R"(
+precision mediump float;
+precision mediump int;
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in float aColIdx;
 out float colorIndex;
@@ -41,8 +47,14 @@ void main() {
 }
 )";
 
-const char *Shaders::modelFragment = R"(
-#version 330 core
+#ifdef __EMSCRIPTEN__
+const char *Shaders::modelFragment = "#version 300 es"
+#else
+const char *Shaders::modelFragment = "#version 330 core"
+#endif
+R"(
+precision mediump float;
+precision mediump int;
 #define MAX_TRIANGLES 36
 in float colorIndex;
 in vec3 meshPos;
@@ -55,11 +67,14 @@ uniform vec3 pieceColors[4];
 
 uniform mat4 model;
 uniform vec3[MAX_TRIANGLES] normals;
-uniform vec3 lightDir = vec3(-0.3f, -0.7f, -0.5f);
-uniform vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
 
-uniform int lighting = 1;
-
+vec3 lightDir = vec3(-0.3f, -0.7f, -0.5f);
+vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
+)"
+#ifndef __EMSCRIPTEN__
+"#define LIGHTING"
+#endif
+R"(
 void main() {
     if (border == 1) {
         FragColor = vec4(vec3(0.0f), 1.0f);
@@ -77,44 +92,44 @@ void main() {
             objectColor = pieceColors[3];
         }
 
-        if (lighting == 1) {
+#if defined(LIGHTING)
 #if defined(NORMAL_MAP)
-            vec2 texCoord;
-            vec3 tangent;
-            vec3 bitangent;
-            vec3 meshNormal = normals[gl_PrimitiveID];
-            vec3 surfacePos = meshPos - meshNormal;
-            if (abs(meshNormal.x) == 1.0f) {
-                texCoord = vec2(surfacePos.z * -meshNormal.x, surfacePos.y);
-                tangent = vec3(0, 0, -meshNormal.x);
-            } else if (abs(meshNormal.y) == 1.0f) {
-                texCoord = vec2(surfacePos.x, surfacePos.z * -meshNormal.y);
-                tangent = vec3(1, 0, 0);
-            } else if (abs(meshNormal.z) == 1.0f) {
-                texCoord = vec2(surfacePos.x * meshNormal.z, surfacePos.y);
-                tangent = vec3(meshNormal.z, 0, 0);
-            }
-            bitangent = cross(meshNormal, tangent);
-            texCoord = (texCoord + 1) / 2;
+        vec2 texCoord;
+        vec3 tangent;
+        vec3 bitangent;
+        vec3 meshNormal = normals[gl_PrimitiveID];
+        vec3 surfacePos = meshPos - meshNormal;
+        if (abs(meshNormal.x) == 1.0f) {
+            texCoord = vec2(surfacePos.z * -meshNormal.x, surfacePos.y);
+            tangent = vec3(0, 0, -meshNormal.x);
+        } else if (abs(meshNormal.y) == 1.0f) {
+            texCoord = vec2(surfacePos.x, surfacePos.z * -meshNormal.y);
+            tangent = vec3(1, 0, 0);
+        } else if (abs(meshNormal.z) == 1.0f) {
+            texCoord = vec2(surfacePos.x * meshNormal.z, surfacePos.y);
+            tangent = vec3(meshNormal.z, 0, 0);
+        }
+        bitangent = cross(meshNormal, tangent);
+        texCoord = (texCoord + 1) / 2;
 
-            vec3 normalMap = normalize(vec3(0.1 - texCoord.x / 10, 0.1 - texCoord.y / 10, 1.0));
-            mat3 TBN = mat3(tangent, bitangent, meshNormal);
-            vec3 normal = mat3(model) * TBN * normalMap;
+        vec3 normalMap = normalize(vec3(0.1 - texCoord.x / 10, 0.1 - texCoord.y / 10, 1.0));
+        mat3 TBN = mat3(tangent, bitangent, meshNormal);
+        vec3 normal = mat3(model) * TBN * normalMap;
 #else
-            vec3 normal = mat3(model) * normals[gl_PrimitiveID];
+        vec3 normal = mat3(model) * normals[gl_PrimitiveID];
 #endif
 
-            float ambientStrength = 0.8;
-            vec3 ambient = ambientStrength * lightColor;
+        float ambientStrength = 0.8;
+        vec3 ambient = ambientStrength * lightColor;
 
-            float diff = max(dot(normal, normalize(-lightDir)), 0.0);
-            vec3 diffuse = diff * lightColor;
+        float diff = max(dot(normal, normalize(-lightDir)), 0.0);
+        vec3 diffuse = diff * lightColor;
 
-            vec3 result = (ambient + diffuse * 0.5) * objectColor;
-            FragColor = vec4(result, 1.0);
-        } else {
-            FragColor = vec4(objectColor, 1.0);
-        }
+        vec3 result = (ambient + diffuse * 0.5) * objectColor;
+        FragColor = vec4(result, 1.0);
+#else
+        FragColor = vec4(objectColor, 1.0);
+#endif
     }
 }
 )";

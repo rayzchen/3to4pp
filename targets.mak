@@ -1,12 +1,13 @@
 .PHONY: all run addicon build shared clean realclean
 
-IMGUI_OBJFILES = imgui/imgui.o \
-				imgui/imgui_draw.o \
-				imgui/imgui_demo.o \
-				imgui/imgui_tables.o \
-				imgui/imgui_widgets.o \
-				imgui/backends/imgui_impl_glfw.o \
-				imgui/backends/imgui_impl_opengl3.o
+IMGUI_SOURCEFILES = imgui/imgui.cpp \
+					imgui/imgui_draw.cpp \
+					imgui/imgui_demo.cpp \
+					imgui/imgui_tables.cpp \
+					imgui/imgui_widgets.cpp \
+					imgui/backends/imgui_impl_glfw.cpp \
+					imgui/backends/imgui_impl_opengl3.cpp
+IMGUI_OBJFILES = $(IMGUI_SOURCEFILES:.cpp=.o)
 
 ifeq ($(MAKECMDGOALS),shared)
 ifeq ($(OS),Windows_NT)
@@ -59,3 +60,9 @@ release:
 	7z a dist/3to4++.zip 3to4pp/
 	make shared
 	7z a dist/3to4++dll.zip 3to4pp/
+
+emscripten:
+	rm -rf web/3to4++*
+	em++ $(CPPFLAGS) $(CPP_FILES) $(C_FILES) $(IMGUI_SOURCEFILES) \
+		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3 \
+		--preload-file NotoSans.ttf@NotoSans.ttf

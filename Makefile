@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 12:43:47 2024
+# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 17:49:03 2024
 #
 
 #
@@ -43,8 +43,8 @@ COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c
 CPP = $(CPP) $(CPPFLAGS)
 ########## Flags from header.mak
 
-CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -Iinclude -pedantic
-CXXFLAGS = --std=c++11 -Iimgui/ -Iimgui/backends/
+CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -pedantic -Iinclude -Iimgui/ -Iimgui/backends/
+CXXFLAGS = --std=c++11
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32
 else
@@ -67,6 +67,11 @@ ifeq ($(MAKECMDGOALS),shared)
 		CCLIBFLAGS += lib/*.dll
 	endif
 	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
+endif
+
+ifeq ($(MAKECMDGOALS),emscripten)
+	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
+	CPPFLAGS += -Wno-dollar-in-identifier-extension -x c++ -lglfw3
 endif
 
 ########## End of flags from header.mak
@@ -109,13 +114,14 @@ gl.o:
 
 .PHONY: all run addicon build shared clean realclean
 
-IMGUI_OBJFILES = imgui/imgui.o \
-				imgui/imgui_draw.o \
-				imgui/imgui_demo.o \
-				imgui/imgui_tables.o \
-				imgui/imgui_widgets.o \
-				imgui/backends/imgui_impl_glfw.o \
-				imgui/backends/imgui_impl_opengl3.o
+IMGUI_SOURCEFILES = imgui/imgui.cpp \
+					imgui/imgui_draw.cpp \
+					imgui/imgui_demo.cpp \
+					imgui/imgui_tables.cpp \
+					imgui/imgui_widgets.cpp \
+					imgui/backends/imgui_impl_glfw.cpp \
+					imgui/backends/imgui_impl_opengl3.cpp
+IMGUI_OBJFILES = $(IMGUI_SOURCEFILES:.cpp=.o)
 
 ifeq ($(MAKECMDGOALS),shared)
 ifeq ($(OS),Windows_NT)
@@ -168,6 +174,12 @@ release:
 	7z a dist/3to4++.zip 3to4pp/
 	make shared
 	7z a dist/3to4++dll.zip 3to4pp/
+
+emscripten:
+	rm -rf web/3to4++*
+	em++ $(CPPFLAGS) $(CPP_FILES) $(C_FILES) $(IMGUI_SOURCEFILES) \
+		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3 \
+		--preload-file NotoSans.ttf@NotoSans.ttf
 
 ########## End of targets from targets.mak
 

@@ -38,10 +38,17 @@ void showError(std::string text) {
 #undef IN
 #undef OUT
 #else
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+void showError(std::string text) {
+    EM_ASM(alert(UTF8ToString($0)), text.c_str());
+}
+#else
 #include <iostream>
 void showError(std::string text) {
     std::cerr << text << std::endl;
 }
+#endif
 #endif
 
 int PuzzleController::cellKeys[] = {GLFW_KEY_D, GLFW_KEY_V, GLFW_KEY_F, GLFW_KEY_W,
@@ -107,7 +114,7 @@ void PuzzleController::performMove(MoveEntry entry) {
 
 bool PuzzleController::updatePuzzle(GLFWwindow *window, double dt) {
 	MoveEntry entry;
-    bool updated;
+    bool updated = false;
 	if (renderer->updateAnimations(window, dt, &entry)) {
         performMove(entry);
         if (scrambleIndex != -1) {
@@ -349,10 +356,8 @@ void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int 
             if (key == GLFW_KEY_F) {
                 resetPuzzle();
                 scramblePuzzle();
-                status = "Scrambled puzzle!";
             } else if (key == GLFW_KEY_R) {
                 resetPuzzle();
-                status = "Reset puzzle!";
             }
         }
     }
@@ -362,6 +367,7 @@ void PuzzleController::resetPuzzle() {
     puzzle->resetPuzzle();
     scramble.clear();
     history->reset();
+    status = "Reset puzzle!";
 }
 
 void PuzzleController::undoMove() {
@@ -496,6 +502,7 @@ void PuzzleController::scramblePuzzle() {
     getScrambleTwists();
     scrambleIndex = 0;
     performScramble();
+    status = "Scrambled puzzle!";
 }
 
 void PuzzleController::performScramble() {

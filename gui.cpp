@@ -31,7 +31,7 @@
 #ifdef _WIN32
 const char* GuiRenderer::fontFile = "C:\\Windows\\Fonts\\segoeui.ttf";
 #else
-const char* GuiRenderer::fontFile = "/usr/share/fonts/truetype/arial.ttf";
+const char* GuiRenderer::fontFile = "NotoSans.ttf";
 #endif
 
 // todo: replace with keybinds
@@ -66,6 +66,8 @@ GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int w
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 	ImGuiIO& io = ImGui::GetIO();
+	io.IniFilename = NULL;
+
 	float xscale, yscale;
 	glfwGetWindowContentScale(window, &xscale, &yscale);
 	hudFont = io.Fonts->AddFontFromFileTTF(fontFile, 20 * xscale);
@@ -127,8 +129,8 @@ void GuiRenderer::renderGui() {
 void GuiRenderer::displayMenuBar() {
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-			if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+			if (ImGui::MenuItem("Open", "Ctrl+O", false, false)) {}
+			if (ImGui::MenuItem("Save", "Ctrl+S", false, false)) {}
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Edit")) {
@@ -190,7 +192,7 @@ void GuiRenderer::displayStatusBar() {
     float height = ImGui::GetFrameHeight();
     if (ImGui::BeginViewportSideBar("##StatusBar", viewport, ImGuiDir_Down, height, window_flags)) {
 	    if (ImGui::BeginMenuBar()) {
-	        ImGui::Text(controller->getStatus().c_str());
+	        ImGui::Text("%s", controller->getStatus().c_str());
 
 			std::ostringstream stream;
 			stream << "Move Count: " << history->getTurnCount();
@@ -199,7 +201,7 @@ void GuiRenderer::displayStatusBar() {
 	        ImGui::SameLine(
 	        	ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(text.c_str()).x - 5
 	        );
-	        ImGui::Text(text.c_str());
+	        ImGui::Text("%s", text.c_str());
 	        ImGui::EndMenuBar();
 	    }
 	    ImGui::End();
