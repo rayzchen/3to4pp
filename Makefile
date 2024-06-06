@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  2 2024) on Sun Jun 02 17:17:30 2024
+# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 12:43:47 2024
 #
 
 #
@@ -11,13 +11,13 @@
 .c.o:
 		$(COMPILE.c) -o $@ $<
 .C.o:
-		$(COMPILE.cc) -o $@  $<
+		$(COMPILE.cc) -o $@ $<
 .cpp.o:
-		$(COMPILE.cc) -o $@  $<
+		$(COMPILE.cc) -o $@ $<
 .S.s:
 		$(CPP) -o $*.s $<
 .s.o:
-		$(COMPILE.cc) -o $@  $<
+		$(COMPILE.cc) -o $@ $<
 .c.a:
 		$(COMPILE.c) -o $% $<
 		$(AR) $(ARFLAGS) $@ $%
@@ -52,7 +52,7 @@ else
 endif
 
 ifeq ($(MAKECMDGOALS),build)
-	CXXFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
+	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
 	ifeq ($(OS),Windows_NT)
 		CCLIBFLAGS += -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
 		CXXFLAGS += -mwindows
@@ -60,7 +60,7 @@ ifeq ($(MAKECMDGOALS),build)
 endif
 
 ifeq ($(MAKECMDGOALS),shared)
-	CXXFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
+	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
 	ifeq ($(OS),Windows_NT)
 		CCLIBFLAGS += -lglfw3dll
 		CXXFLAGS += -mwindows -DGLFW_DLL -DDLL_IMPORT
