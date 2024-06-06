@@ -65,7 +65,6 @@ PuzzleController::PuzzleController(PuzzleRenderer* renderer) {
         char comma;
         while (true) {
             file >> move[0] >> comma >> move[1];
-            std::cout << moves.size() << std::endl;
             if (file.eof()) {
                 break;
             }

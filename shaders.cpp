@@ -118,29 +118,3 @@ void main() {
     }
 }
 )";
-
-const char *Shaders::guiVertex = R"(
-#version 330 core
-layout (location = 0) in vec4 vertex;
-out vec2 texCoords;
-
-uniform mat4 projection;
-
-void main() {
-    gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);
-    texCoords = vertex.zw;
-}
-)";
-
-const char *Shaders::guiFragment = R"(
-#version 330 core
-in vec2 texCoords;
-out vec4 color;
-
-uniform sampler2D glyph;
-uniform vec3 textColor;
-
-void main() {
-    color = vec4(textColor, texture(glyph, texCoords).r);
-}
-)";

@@ -23,7 +23,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-#include "render.h"
 #include "control.h"
 
 typedef struct {
@@ -43,7 +42,7 @@ class GuiRenderer {
 		void renderText(std::string text, float x, float y, int color);
 		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 		int getTextWidth(std::string text);
-		void renderGui(Shader *shader);
+		void renderGui();
 		void displayMenuBar();
 		void displayHUD();
 		void displayStatusBar();

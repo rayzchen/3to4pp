@@ -81,7 +81,6 @@ Window::Window() {
     setCallbacks();
 
     modelShader = new Shader(Shaders::modelVertex, Shaders::modelFragment);
-    guiShader = new Shader(Shaders::guiVertex, Shaders::guiFragment);
     camera = new Camera(M_PI_4, WIDTH, HEIGHT, 0.02, 50);
     puzzle = new Puzzle();
     renderer = new PuzzleRenderer(puzzle);
@@ -185,7 +184,7 @@ void Window::draw() {
     if (controller->checkOutline(window, modelShader, camera->inputFlipped())) {
         setUpdateFlag();
     }
-    gui->renderGui(guiShader);
+    gui->renderGui();
     glfwSwapBuffers(window);
     glfwPollEvents();
 }

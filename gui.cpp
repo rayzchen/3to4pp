@@ -101,7 +101,7 @@ void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int hei
 	this->height = height;
 }
 
-void GuiRenderer::renderGui(Shader *shader) {
+void GuiRenderer::renderGui() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
