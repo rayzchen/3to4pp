@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 19:58:38 2024
+# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 20:19:14 2024
 #
 
 #
@@ -179,7 +179,8 @@ release:
 emscripten:
 	rm -rf web/3to4++*
 	em++ $(CPPFLAGS) $(CPP_FILES) $(C_FILES) $(IMGUI_SOURCEFILES) \
-		-o web/3to4++.js -sFULL_ES3 -sMAX_WEBGL_VERSION=3
+		-o web/3to4++.js -sMAX_WEBGL_VERSION=3 -sFILESYSTEM=0 \
+		-flto --closure 1 -sENVIRONMENT=web
 
 ########## End of targets from targets.mak
 
