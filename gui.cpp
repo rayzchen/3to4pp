@@ -43,11 +43,11 @@ std::vector<std::string> GuiRenderer::helpText = {
 	"SPACE - Gyro (Selected > I)",
 	"M, COMMA, PERIOD - Move Outer Parts",
 };
-std::vector<std::array<std::string, 2>> GuiRenderer::creditsText = {
-	{"Join the Hypercubers ", "Discord!"},
-	{"Simulator made by ", "Rayzchen (GitHub)"},
-	{"App inspired by ", "Akkei (Instagram)"},
-	{"Puzzle designed by ", "Grant S (YouTube)"}
+std::vector<std::array<std::string, 3>> GuiRenderer::creditsText = {
+	{"Join the Hypercubers ", "Discord!", "https://discord.gg/BuKJksy37P"},
+	{"Simulator made by ", "Rayzchen (GitHub)", "https://github.com/rayzchen"},
+	{"App inspired by ", "Akkei (Instagram)", "https://www.instagram.com/akeustlom"},
+	{"Puzzle designed by ", "Grant S (YouTube)", "https://www.youtube.com/channel/UCamz5yyKs4naf290b9uCo6Q"}
 };
 
 GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int width, int height) {
@@ -97,8 +97,32 @@ int GuiRenderer::getTextWidth(std::string text) {
 }
 
 void GuiRenderer::renderText(std::string text, float x, float y, int color) {
-	ImVec2 textPos = ImVec2(x, y);
-	ImGui::GetForegroundDrawList()->AddText(textPos, color, text.c_str());
+	ImGui::GetForegroundDrawList()->AddText({x, y}, color, text.c_str());
+}
+
+void GuiRenderer::renderLink(std::string text, std::string link, float x, float y, int color, int index) {
+	std::string title = "link" + std::to_string(index);
+	std::string id = "##" + title;
+	renderText(text, x, y, color);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::Begin(title.c_str(), NULL, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
+	ImGui::SetWindowPos({x, y});
+	if (ImGui::InvisibleButton(id.c_str(), ImGui::CalcTextSize(text.c_str()))) {
+#ifdef __EMSCRIPTEN__
+		EM_ASM(window.open(UTF8ToString($0)), link.c_str());
+#else
+#ifdef _WIN32
+		std::string command = "start " + link;
+#else
+		std::string command = "xdg-open " + link;
+#endif
+		system(command.c_str());
+#endif
+	}
+	if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+	ImGui::End();
+	ImGui::PopStyleVar(2);
 }
 
 void GuiRenderer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -174,10 +198,10 @@ void GuiRenderer::displayHUD() {
 			float y = height - 5 - (creditsText.size() - i) * lineHeight - ImGui::GetFrameHeight();
 			textWidth = getTextWidth(creditsText[i][0]);
 			renderText(creditsText[i][0], x, y, white);
-			renderText(creditsText[i][1], x + textWidth, y, blue);
+			renderLink(creditsText[i][1], creditsText[i][2], x + textWidth, y, blue, i);
 		}
 		float y = height - 5 - (creditsText.size() + 1) * lineHeight - ImGui::GetFrameHeight();
-		renderText("links dont work lol", 5, y, red);
+		renderText("links now work lol", 5, y, red);
 	}
 
 	std::string saveWarning = "No saving in this version!";

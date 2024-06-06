@@ -36,10 +36,11 @@ class GuiRenderer {
 	public:
 		static const char *fontFile;
 		static std::vector<std::string> helpText;
-		static std::vector<std::array<std::string, 2>> creditsText;
+		static std::vector<std::array<std::string, 3>> creditsText;
 		GuiRenderer(GLFWwindow* window, PuzzleController *controller, int width, int height);
 		~GuiRenderer();
 		void renderText(std::string text, float x, float y, int color);
+		void renderLink(std::string text, std::string link, float x, float y, int color, int index);
 		void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 		int getTextWidth(std::string text);
 		void renderGui();
