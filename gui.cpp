@@ -49,7 +49,7 @@ std::vector<std::string> GuiRenderer::helpText = {
 std::vector<std::array<std::string, 3>> GuiRenderer::creditsText = {
 	{"Join the Hypercubers ", "Discord!", "https://discord.gg/BuKJksy37P"},
 	{"Simulator made by ", "Rayzchen (GitHub)", "https://github.com/rayzchen"},
-	{"App inspired by ", "Akkei (Instagram)", "https://www.instagram.com/akeustlom"},
+	{"App inspired by ", "Akkei (Instagram)", "https://www.instagram.com/ake_cubes"},
 	{"Puzzle designed by ", "Grant S (YouTube)", "https://www.youtube.com/channel/UCamz5yyKs4naf290b9uCo6Q"}
 };
 
@@ -123,7 +123,12 @@ void GuiRenderer::renderLink(std::string text, std::string link, float x, float 
 		system(command.c_str());
 #endif
 	}
-	if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+#ifdef __EMSCRIPTEN__
+		EM_ASM(document.documentElement.style.cursor = UTF8ToString($0), "pointer");
+#endif
+	}
 	ImGui::End();
 	ImGui::PopStyleVar(2);
 }
@@ -181,6 +186,9 @@ void GuiRenderer::displayMenuBar() {
 }
 
 void GuiRenderer::displayHUD() {
+#ifdef __EMSCRIPTEN__
+	EM_ASM(document.documentElement.style.removeProperty(UTF8ToString($0)), "cursor");
+#endif
 	const int white = IM_COL32_WHITE;
 	const int red = IM_COL32(255, 127, 127, 255);
 	const int blue = IM_COL32(127, 127, 255, 255);
