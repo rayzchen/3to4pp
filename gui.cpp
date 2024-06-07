@@ -28,6 +28,9 @@
 #include "gui.h"
 #include "font.h"
 #include "control.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 // todo: replace with keybinds
 std::vector<std::string> GuiRenderer::helpText = {
