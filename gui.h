@@ -46,17 +46,24 @@ class GuiRenderer {
 		void renderGui();
 		void displayMenuBar();
 		void displayHUD();
+		void displayModal();
 		void displayStatusBar();
-		void toggleHelp();
 		bool captureMouse();
 
-		void resetPuzzle();
+		void keyCallback(GLFWwindow* window, int key, int action, int mods);
+		void resolveModal();
+		void toggleHelp();
+		void checkUnsaved(std::string action);
+		void checkUnsaved(std::string action, int argument);
 
 	private:
         PuzzleController *controller;
         MoveHistory *history;
 		int width, height;
 		bool showHelp;
+		bool modalToggle;
+		std::string modalText;
+		int modalArg;
 		ImFont *hudFont, *uiFont;
 
 #ifndef NO_DEMO_WINDOW

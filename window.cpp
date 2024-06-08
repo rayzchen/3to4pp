@@ -123,6 +123,7 @@ void Window::setCallbacks() {
     });
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         Window::current->keyCallback(window, key, scancode, action, mods);
+        Window::current->gui->keyCallback(window, key, action, mods);
         Window::current->controller->keyCallback(window, key, action, mods, Window::current->camera->inputFlipped());
     });
     glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xpos, int ypos) {
@@ -243,8 +244,6 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
                 glfwSwapInterval(vsync);
             }
             fullscreen = !fullscreen;
-        } else if (key == GLFW_KEY_H) {
-            gui->toggleHelp();
         }
     }
 }

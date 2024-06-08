@@ -70,7 +70,7 @@ class PuzzleController {
         void getScrambleTwists();
 
         void resetPuzzle();
-        void scramblePuzzle();
+        void scramblePuzzle(int scrambleLength);
         void undoMove();
         void redoMove();
 

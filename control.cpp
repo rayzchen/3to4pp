@@ -333,10 +333,8 @@ void PuzzleController::startCellMove(CellLocation cell, RotateDirection directio
 void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int mods, bool flip) {
     if (renderer->animating) return;
     if (action == GLFW_PRESS) {
+        status.clear();
         if (mods == 0) {
-            if (!(key == GLFW_KEY_Z || key == GLFW_KEY_Y)) {
-                status.clear();
-            }
             if (checkMiddleGyro(key, flip)) return;
             if (checkDirectionalMove(window, key, flip)) return;
 
@@ -351,13 +349,6 @@ void PuzzleController::keyCallback(GLFWwindow* window, int key, int action, int 
                 undoMove();
             } else if (key == GLFW_KEY_Y) {
                 redoMove();
-            }
-        } else if (mods & GLFW_MOD_CONTROL) {
-            if (key == GLFW_KEY_F) {
-                resetPuzzle();
-                scramblePuzzle();
-            } else if (key == GLFW_KEY_R) {
-                resetPuzzle();
             }
         }
     }
@@ -376,7 +367,7 @@ void PuzzleController::undoMove() {
         renderer->scheduleMove(entry);
         status = "Undid 1 move!";
     } else {
-        status = "No moves left!";
+        status = "Error: nothing to undo!";
     }
 }
 
@@ -386,7 +377,7 @@ void PuzzleController::redoMove() {
         renderer->scheduleMove(entry);
         status = "Redid 1 move!";
     } else {
-        status = "No moves left!";
+        status = "Error: nothing to redo!";
     }
 }
 
@@ -414,15 +405,17 @@ void rotate8bycell(std::array<int, 8>& cells, CellLocation cell) {
     }
 }
 
-void PuzzleController::scramblePuzzle() {
+void PuzzleController::scramblePuzzle(int scrambleLength) {
     static std::discrete_distribution<int> typeDist({2, 3});
     static std::uniform_int_distribution<int> directionDist(0, 5);
     static std::discrete_distribution<int> cellDist({2, 2, 6, 6, 1, 1, 1, 1});
-    // only for visual effect, functionally unneeded
+    // FBUD only for visual effect, functionally unneeded
     static std::uniform_int_distribution<int> boolDist(0, 1);
     MoveEntry entry;
     entry.type = TURN;
-    int scrambleLength = 45;
+    if (scrambleLength == 0) {
+        scrambleLength = 45;
+    }
     CellLocation lastCell = (CellLocation)-1;
     for (int i = 0; i < scrambleLength; i++) {
         if (typeDist(rng) == 0 && entry.type != GYRO) {
@@ -464,37 +457,40 @@ void PuzzleController::scramblePuzzle() {
         scramble.push_back(entry);
     }
 
-    // R, L, U, D, F, B, O, I
-    // Reorient to HSC default orientation
-    std::array<int, 8> cells = {0, 1, 4, 5, 3, 2, 6, 7};
-    for (size_t i = 0; i < scramble.size(); i++) {
-        if (scramble[i].type == GYRO) {
-            rotate8bycell(cells, scramble[i].cell);
-        }
-    }
-    entry.type = GYRO;
-    std::array<int, 3> colorsToFix = {4, 2, 7};
-    for (int i = 0; i < 3; i++) {
-        int index = std::distance(cells.begin(), std::find(cells.begin(), cells.end(), colorsToFix[i]));
-        if (index != colorsToFix[i]) {
-            // Move to I
-            if (index == 6) {
-                entry.cell = LEFT;
-                scramble.push_back(entry);
-                scramble.push_back(entry);
-                rotate8bycell(cells, entry.cell);
-                rotate8bycell(cells, entry.cell);
-            } else if (index < 6) {
-                entry.cell = (CellLocation)(2 + index);
-                scramble.push_back(entry);
-                rotate8bycell(cells, entry.cell);
+    bool reorient = false;
+    if (reorient) {
+        // R, L, U, D, F, B, O, I
+        // Reorient to HSC default orientation
+        std::array<int, 8> cells = {0, 1, 4, 5, 3, 2, 6, 7};
+        for (size_t i = 0; i < scramble.size(); i++) {
+            if (scramble[i].type == GYRO) {
+                rotate8bycell(cells, scramble[i].cell);
             }
-            // Move to desired location (gyro opposite)
-            if (colorsToFix[i] != 7) {
-                // Don't gyro if inner
-                entry.cell = (CellLocation)(2 + colorsToFix[i] + 1);
-                scramble.push_back(entry);
-                rotate8bycell(cells, entry.cell);
+        }
+        entry.type = GYRO;
+        std::array<int, 3> colorsToFix = {4, 2, 7};
+        for (int i = 0; i < 3; i++) {
+            int index = std::distance(cells.begin(), std::find(cells.begin(), cells.end(), colorsToFix[i]));
+            if (index != colorsToFix[i]) {
+                // Move to I
+                if (index == 6) {
+                    entry.cell = LEFT;
+                    scramble.push_back(entry);
+                    scramble.push_back(entry);
+                    rotate8bycell(cells, entry.cell);
+                    rotate8bycell(cells, entry.cell);
+                } else if (index < 6) {
+                    entry.cell = (CellLocation)(2 + index);
+                    scramble.push_back(entry);
+                    rotate8bycell(cells, entry.cell);
+                }
+                // Move to desired location (gyro opposite)
+                if (colorsToFix[i] != 7) {
+                    // Don't gyro if inner
+                    entry.cell = (CellLocation)(2 + colorsToFix[i] + 1);
+                    scramble.push_back(entry);
+                    rotate8bycell(cells, entry.cell);
+                }
             }
         }
     }

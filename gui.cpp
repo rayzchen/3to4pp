@@ -59,6 +59,7 @@ GuiRenderer::GuiRenderer(GLFWwindow *window, PuzzleController *controller, int w
 	this->width = width;
 	this->height = height;
 	showHelp = false;
+	modalToggle = false;
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -146,6 +147,7 @@ void GuiRenderer::renderGui() {
 	ImGui::PushFont(uiFont);
 	displayMenuBar();
 	displayStatusBar();
+	displayModal();
 #ifndef NO_DEMO_WINDOW
 	if (showDemoWindow) {
 		ImGui::ShowDemoWindow();
@@ -164,7 +166,7 @@ void GuiRenderer::renderGui() {
 void GuiRenderer::displayMenuBar() {
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Open", "Ctrl+O", false, false)) {}
+			if (ImGui::MenuItem("Open", "Ctrl+O", false, false)) checkUnsaved("open another file");
 			if (ImGui::MenuItem("Save", "Ctrl+S", false, false)) {}
 			ImGui::EndMenu();
 		}
@@ -172,7 +174,15 @@ void GuiRenderer::displayMenuBar() {
 			if (ImGui::MenuItem("Undo", "Z", false, history->canUndo())) controller->undoMove();
             if (ImGui::MenuItem("Redo", "Y", false, history->canRedo())) controller->redoMove();
             ImGui::Separator();
-			if (ImGui::MenuItem("Reset", "Ctrl+R")) controller->resetPuzzle();
+			if (ImGui::MenuItem("Reset", "Ctrl+R")) checkUnsaved("reset puzzle");
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Scramble")) {
+			for (int i = 1; i < 9; i++) {
+				if (ImGui::MenuItem(std::to_string(i).c_str(), NULL)) checkUnsaved("scramble", i);
+			}
+            ImGui::Separator();
+			if (ImGui::MenuItem("Full", "Ctrl+F")) checkUnsaved("scramble", 0);
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Tools")) {
@@ -181,8 +191,35 @@ void GuiRenderer::displayMenuBar() {
 #endif
 			ImGui::EndMenu();
 		}
+		if (ImGui::BeginMenu("Help")) {
+			if (ImGui::MenuItem("Show help", "H")) toggleHelp();
+			ImGui::EndMenu();
+		}
 		ImGui::EndMainMenuBar();
 	}
+}
+
+void GuiRenderer::displayModal() {
+	if (modalToggle) {
+		ImGui::SetNextWindowSize({100, 0});
+		ImGui::OpenPopup("Unsaved changes");
+		modalToggle = false;
+	}
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    if (ImGui::BeginPopupModal("Unsaved changes", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextWrapped("Discard puzzle state and %s?", modalText.c_str());
+        if (ImGui::Button("Yes", ImVec2(80, 0))) {
+        	ImGui::CloseCurrentPopup();
+        	resolveModal();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("No", ImVec2(80, 0))) {
+        	ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 }
 
 void GuiRenderer::displayHUD() {
@@ -248,4 +285,43 @@ void GuiRenderer::displayStatusBar() {
 
 void GuiRenderer::toggleHelp() {
 	showHelp = !showHelp;
+}
+
+void GuiRenderer::keyCallback(GLFWwindow* window, int key, int action, int mods) {
+	if (action == GLFW_PRESS) {
+		if (mods == 0) {
+			if (key == GLFW_KEY_H) {
+				toggleHelp();
+			}
+		} else if (mods & GLFW_MOD_CONTROL) {
+			if (key == GLFW_KEY_F) {
+				checkUnsaved("scramble", 0);
+			} else if (key == GLFW_KEY_R) {
+				checkUnsaved("reset puzzle");
+			}
+		}
+	}
+}
+
+void GuiRenderer::checkUnsaved(std::string action, int argument) {
+	modalArg = argument;
+	checkUnsaved(action);
+}
+
+void GuiRenderer::checkUnsaved(std::string action) {
+	modalText = action;
+	modalToggle = true;
+}
+
+void GuiRenderer::resolveModal() {
+	if (modalText == "reset puzzle") {
+		controller->resetPuzzle();
+	} else if (modalText == "scramble") {
+		controller->resetPuzzle();
+		controller->scramblePuzzle(modalArg);
+	} else if (modalText == "open another file") {
+		//
+	} else if (modalText == "exit") {
+		//
+	}
 }
