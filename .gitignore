@@ -2,6 +2,7 @@
 3to4++
 *.exe
 *.dll
+*.lib
 .vscode/
 3to4pp/
 include/GLFW/
