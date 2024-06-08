@@ -1,119 +1,134 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>3to4++ | Rayz's Physical 3^4</title>
-<style>
-body {
-  background-color: #404040;
-  overflow: hidden;
-}
-#canvas-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 0;
-  border: 0 none;
-  margin: 0;
-  width: 100%;
-  height: 100%;
-}
-.lds-grid,
-.lds-grid div {
-  box-sizing: border-box;
-}
-.lds-grid {
-  display: inline-block;
-  position: relative;
-  width: 80px;
-  height: 80px;
-}
-.lds-grid div {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: lds-grid 1.2s linear infinite;
-}
-.lds-grid div:nth-child(1) {
-  top: 8px;
-  left: 8px;
-  animation-delay: 0s;
-}
-.lds-grid div:nth-child(2) {
-  top: 8px;
-  left: 32px;
-  animation-delay: -0.4s;
-}
-.lds-grid div:nth-child(3) {
-  top: 8px;
-  left: 56px;
-  animation-delay: -0.8s;
-}
-.lds-grid div:nth-child(4) {
-  top: 32px;
-  left: 8px;
-  animation-delay: -0.4s;
-}
-.lds-grid div:nth-child(5) {
-  top: 32px;
-  left: 32px;
-  animation-delay: -0.8s;
-}
-.lds-grid div:nth-child(6) {
-  top: 32px;
-  left: 56px;
-  animation-delay: -1.2s;
-}
-.lds-grid div:nth-child(7) {
-  top: 56px;
-  left: 8px;
-  animation-delay: -0.8s;
-}
-.lds-grid div:nth-child(8) {
-  top: 56px;
-  left: 32px;
-  animation-delay: -1.2s;
-}
-.lds-grid div:nth-child(9) {
-  top: 56px;
-  left: 56px;
-  animation-delay: -1.6s;
-}
-@keyframes lds-grid {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-.centered {
-  margin-right: auto;
-  margin-left: auto;
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #f0f0f0;
-}
-</style>
-</head>
-<body>
-<div class="lds-grid centered"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-<div id="canvas-container">
-<canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-</div>
-<script type='text/javascript'>
-var Module = {
-    canvas: document.getElementById("canvas"),
-    postRun: (function() {document.querySelector(".lds-grid").style.display = "none";})
-};
-</script>
-<script src="3to4++.js"></script>
-</body>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta name="description" content="3to4++: A virtual simulator for the physical 3x3x3x3 design by Grant S, compiled with Emscripten and WebAssembly">
+        <meta name="title" content="3to4++ | Rayz's Physical 3^4">
+        <title>3to4++ | Rayz's Physical 3^4</title>
+        <style>
+            body {
+                background-color: #404040;
+                overflow: hidden;
+            }
+            #canvas-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                padding: 0;
+                border: 0 none;
+                margin: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .lds-grid,
+            .lds-grid div {
+                box-sizing: border-box;
+            }
+            .lds-grid {
+                display: inline-block;
+                position: relative;
+                width: 80px;
+                height: 80px;
+            }
+            .lds-grid div {
+                position: absolute;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: currentColor;
+                animation: lds-grid 1.2s linear infinite;
+            }
+            .lds-grid div:nth-child(1) {
+                top: 8px;
+                left: 8px;
+                animation-delay: 0s;
+            }
+            .lds-grid div:nth-child(2) {
+                top: 8px;
+                left: 32px;
+                animation-delay: -0.4s;
+            }
+            .lds-grid div:nth-child(3) {
+                top: 8px;
+                left: 56px;
+                animation-delay: -0.8s;
+            }
+            .lds-grid div:nth-child(4) {
+                top: 32px;
+                left: 8px;
+                animation-delay: -0.4s;
+            }
+            .lds-grid div:nth-child(5) {
+                top: 32px;
+                left: 32px;
+                animation-delay: -0.8s;
+            }
+            .lds-grid div:nth-child(6) {
+                top: 32px;
+                left: 56px;
+                animation-delay: -1.2s;
+            }
+            .lds-grid div:nth-child(7) {
+                top: 56px;
+                left: 8px;
+                animation-delay: -0.8s;
+            }
+            .lds-grid div:nth-child(8) {
+                top: 56px;
+                left: 32px;
+                animation-delay: -1.2s;
+            }
+            .lds-grid div:nth-child(9) {
+                top: 56px;
+                left: 56px;
+                animation-delay: -1.6s;
+            }
+            @keyframes lds-grid {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+            .centered {
+                margin-right: auto;
+                margin-left: auto;
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #f0f0f0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="lds-grid centered">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div id="canvas-container">
+            <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+        </div>
+        <script type='text/javascript'>
+            var Module = {
+                canvas: document.getElementById("canvas"),
+                postRun: (function() {
+                    document.querySelector(".lds-grid").style.display = "none";
+                })
+            };
+        </script>
+        <script src="3to4++.js"></script>
+    </body>
 </html>
