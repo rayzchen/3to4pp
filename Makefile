@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Jun  6 2024) on Thu Jun 06 20:19:14 2024
+# Created by gmakemake (Ubuntu Jun  8 2024) on Sat Jun 08 18:13:17 2024
 #
 
 #
@@ -46,27 +46,37 @@ CPP = $(CPP) $(CPPFLAGS)
 CPPFLAGS = -Wall -Wextra -Wno-unused-parameter -Werror -pedantic -Iinclude -Iimgui/ -Iimgui/backends/
 CXXFLAGS = --std=c++11
 ifeq ($(OS),Windows_NT)
-	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32
+	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32 -lshell32
 else
 	CCLIBFLAGS = -Llib -lglfw -lGL
 endif
 
 ifeq ($(MAKECMDGOALS),build)
 	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
-	ifeq ($(OS),Windows_NT)
-		CCLIBFLAGS += -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
-		CXXFLAGS += -mwindows
+	ifeq ($(CXX),cccl)
+		CCLIBFLAGS += /O2 /link /subsystem:windows /ENTRY:mainCRTStartup /nologo
+		unexport CXXFLAGS
+	else
+		ifeq ($(OS),Windows_NT)
+			CCLIBFLAGS += -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
+			CXXFLAGS += -mwindows
+		endif
 	endif
 endif
 
 ifeq ($(MAKECMDGOALS),shared)
-	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW
-	ifeq ($(OS),Windows_NT)
-		CCLIBFLAGS += -lglfw3dll
-		CXXFLAGS += -mwindows -DGLFW_DLL -DDLL_IMPORT
-		CCLIBFLAGS += lib/*.dll
+	CPPFLAGS += -s -Ofast -DNDEBUG -DNO_DEMO_WINDOW -DGLFW_DLL -DDLL_IMPORT
+	CCLIBFLAGS := $(filter-out -lglfw3,$(CCLIBFLAGS))
+	ifeq ($(CXX),cccl)
+		CCLIBFLAGS += -luser32 -lglfw3dll /O2 /link /subsystem:windows /ENTRY:mainCRTStartup /nologo
+		unexport CXXFLAGS
+	else
+		ifeq ($(OS),Windows_NT)
+			CCLIBFLAGS += -lglfw3dll lib/*.dll
+			CXXFLAGS += -mwindows
+		endif
+		CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 	endif
-	CCLIBFLAGS := -Wl,-Bdynamic $(CCLIBFLAGS)
 endif
 
 ifeq ($(MAKECMDGOALS),emscripten)
@@ -124,6 +134,7 @@ IMGUI_SOURCEFILES = imgui/imgui.cpp \
 					imgui/backends/imgui_impl_opengl3.cpp
 IMGUI_OBJFILES = $(IMGUI_SOURCEFILES:.cpp=.o)
 
+ifneq ($(CXX),cccl)
 ifeq ($(MAKECMDGOALS),shared)
 ifeq ($(OS),Windows_NT)
 LIBIMGUI = lib/imgui.dll
@@ -135,11 +146,14 @@ $(IMGUI_OBJFILES): CXXFLAGS += -fPIC
 $(LIBIMGUI): $(IMGUI_OBJFILES)
 	rm -f $@
 ifeq ($(OS),Windows_NT)
-	$(LINK.cc) -shared -o $@ $^ lib/*.dll
+	$(LINK.cc) -shared -o $@ $^ lib/glfw3.dll
 endif
 clean: OBJFILES += $(IMGUI_OBJFILES)
 
 CCLIBFLAGS += -Wl,-rpath=\$$ORIGIN -limgui
+else
+OBJFILES += $(IMGUI_OBJFILES)
+endif
 else
 OBJFILES += $(IMGUI_OBJFILES)
 endif

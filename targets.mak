@@ -9,6 +9,7 @@ IMGUI_SOURCEFILES = imgui/imgui.cpp \
 					imgui/backends/imgui_impl_opengl3.cpp
 IMGUI_OBJFILES = $(IMGUI_SOURCEFILES:.cpp=.o)
 
+ifneq ($(CXX),cccl)
 ifeq ($(MAKECMDGOALS),shared)
 ifeq ($(OS),Windows_NT)
 LIBIMGUI = lib/imgui.dll
@@ -20,11 +21,14 @@ $(IMGUI_OBJFILES): CXXFLAGS += -fPIC
 $(LIBIMGUI): $(IMGUI_OBJFILES)
 	rm -f $@
 ifeq ($(OS),Windows_NT)
-	$(LINK.cc) -shared -o $@ $^ lib/*.dll
+	$(LINK.cc) -shared -o $@ $^ lib/glfw3.dll
 endif
 clean: OBJFILES += $(IMGUI_OBJFILES)
 
 CCLIBFLAGS += -Wl,-rpath=\$$ORIGIN -limgui
+else
+OBJFILES += $(IMGUI_OBJFILES)
+endif
 else
 OBJFILES += $(IMGUI_OBJFILES)
 endif

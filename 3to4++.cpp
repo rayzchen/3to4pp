@@ -24,3 +24,10 @@ int main(int argc, char *argv[]) {
     window->run();
     return 0;
 }
+
+#ifdef _MSC_VER
+#include <windows.h>
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+    main(__argc, __argv);
+}
+#endif
