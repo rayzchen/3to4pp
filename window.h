@@ -39,7 +39,7 @@ class Window {
         void windowPosCallback(GLFWwindow* window, int xpos, int ypos);
         void mouseButtonCallback(GLFWwindow* window, int button, int action);
         void setCallbacks();
-        void setUpdateFlag();
+        void setUpdateBuffer();
 
     private:
         GLFWwindow *window;
@@ -53,7 +53,7 @@ class Window {
         bool vsync;
         bool fullscreen;
         int maxFrames;
-        bool updateFlag, extraFrame;
+        float updateBuffer;
         static Window *current;
 };
 

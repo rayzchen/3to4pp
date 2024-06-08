@@ -92,7 +92,7 @@ Window::Window() {
     gui = new GuiRenderer(window, controller, WIDTH, HEIGHT);
     vsync = true;
     fullscreen = false;
-    updateFlag = true;
+    updateBuffer = 0.2f;
 #ifdef __EMSCRIPTEN__
     maxFrames = 0;
 #else
@@ -106,13 +106,13 @@ void Window::setCallbacks() {
     });
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
         // todo: filter correctly with captureMouse()
-        Window::current->setUpdateFlag();
+        Window::current->setUpdateBuffer();
     });
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
         if (Window::current->gui->captureMouse()) {
-            Window::current->setUpdateFlag();
+            Window::current->setUpdateBuffer();
         } else {
-            if (yoffset != 0) Window::current->setUpdateFlag();
+            if (yoffset != 0) Window::current->setUpdateBuffer();
             Window::current->camera->scrollCallback(window, xoffset, yoffset);
         }
     });
@@ -130,9 +130,8 @@ void Window::setCallbacks() {
     });
 }
 
-void Window::setUpdateFlag() {
-    updateFlag = true;
-    extraFrame = true;
+void Window::setUpdateBuffer() {
+    updateBuffer = 0.2f;
 }
 
 #ifdef __EMSCRIPTEN__
@@ -156,12 +155,12 @@ void Window::run() {
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(1.0, 1.0);
 
-    setUpdateFlag();
+    setUpdateBuffer();
 
 #ifdef __EMSCRIPTEN__
     onCanvasSizeChanged(EMSCRIPTEN_EVENT_RESIZE, NULL, window);
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, window, false, onCanvasSizeChanged);
-    emscripten_set_main_loop([]() {Window::current->updateFunc(); Window::current->setUpdateFlag();}, maxFrames, true);
+    emscripten_set_main_loop([]() {Window::current->updateFunc(); Window::current->setUpdateBuffer();}, maxFrames, true);
 #else
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(window)) {
@@ -171,6 +170,7 @@ void Window::run() {
 }
 
 void Window::updateFunc() {
+    setUpdateBuffer();
     glfwPollEvents();
     if (!(fullscreen || maxFrames == 0)) {
         while (glfwGetTime() - lastTime < 1.0f / maxFrames) {
@@ -180,18 +180,15 @@ void Window::updateFunc() {
     double tick = glfwGetTime();
     double dt = tick - lastTime;
     lastTime = tick;
-    if (renderer->updateMouse(window, dt)) setUpdateFlag();
-    if (camera->updateMouse(window, dt)) setUpdateFlag();
-    if (controller->updatePuzzle(window, dt)) setUpdateFlag();
+    if (renderer->updateMouse(window, dt)) setUpdateBuffer();
+    if (camera->updateMouse(window, dt)) setUpdateBuffer();
+    if (controller->updatePuzzle(window, dt)) setUpdateBuffer();
 
-    if (updateFlag) {
-        if (extraFrame) {
-            extraFrame = false;
-        } else {
-            updateFlag = false;
-        }
+    if (updateBuffer > 0.0f) {
         draw();
+        updateBuffer -= dt;
     } else {
+        updateBuffer = 0.0f;
         glfwWaitEvents();
         lastTime = glfwGetTime() - dt;
     }
@@ -206,7 +203,7 @@ void Window::draw() {
 
     renderer->renderPuzzle(modelShader);
     if (controller->checkOutline(window, modelShader, camera->inputFlipped())) {
-        setUpdateFlag();
+        setUpdateBuffer();
     }
     gui->renderGui();
     glfwSwapBuffers(window);
@@ -232,7 +229,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
     static int saved_w;
     static int saved_h;
     if (action == GLFW_PRESS) {
-        setUpdateFlag();
+        setUpdateBuffer();
         if ((key == GLFW_KEY_ENTER && mods & GLFW_MOD_ALT) || key == GLFW_KEY_F11) {
             if (fullscreen) {
                 glfwSetWindowMonitor(window, NULL, saved_x, saved_y, saved_w, saved_h, GLFW_DONT_CARE);
@@ -258,7 +255,7 @@ void Window::windowPosCallback(GLFWwindow* window, int xpos, int ypos) {
 
 void Window::mouseButtonCallback(GLFWwindow* window, int button, int action) {
     if (gui->captureMouse()) {
-        setUpdateFlag();
+        setUpdateBuffer();
     } else {
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             camera->setMousePressed(true);
