@@ -1,8 +1,19 @@
 # 3to4++ v1.1
 
 A virtual simulator for the [physical 3x3x3x3 design](https://hypercubing.xyz/puzzles/physical/3x3x3x3/) by Grant S.
-Written with [GLFW](https://www.glfw.org/), [Dear ImGui](https://github.com/ocornut/imgui), [OpenGL](https://www.opengl.org/) and [C++](https://isocpp.org/).
 Credit to [Akkei's physical 3^4 program](https://hypercubing.xyz/software/#other) for inspiration and design.
+
+## Frameworks and Libraries used
+
+3to4++ is written with:
+- [C++](https://isocpp.org/)
+- [OpenGL](https://www.opengl.org/)
+- [GLFW](https://www.glfw.org/)
+- [Dear ImGui](https://github.com/ocornut/imgui)
+- [linmath.h](https://github.com/datenwolf/linmath.h)
+- [Rapid YAML](https://github.com/biojppm/rapidyaml)
+- [ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
+- [Emscripten](https://emscripten.org/)
 
 ## Download
 
