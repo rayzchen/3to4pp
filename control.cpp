@@ -26,6 +26,8 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#define RYML_SINGLE_HDR_DEFINE_NOW
+#include <rapidyaml-0.6.0.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -559,6 +561,12 @@ void PuzzleController::getScrambleTwists() {
     }
     std::cout << "scramble: >\n  " << hscScramble.str() << std::endl;
     std::cout << "phys_scramble: >\n  " << physScramble.str() << std::endl;
+}
+
+void PuzzleController::openFile(std::string filename) {
+    std::ostringstream loadStatus;
+    loadStatus << "Loaded log file from " << filename;
+    status = loadStatus.str();
 }
 
 std::string PuzzleController::getStatus() {

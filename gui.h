@@ -61,7 +61,7 @@ class GuiRenderer {
         MoveHistory *history;
 		int width, height;
 		bool showHelp;
-		bool modalToggle;
+		bool modalToggle, modalResolve;
 		std::string modalText;
 		int modalArg;
 		ImFont *hudFont, *uiFont;

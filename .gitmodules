@@ -4,3 +4,6 @@
 [submodule "igfd"]
 	path = igfd
 	url = https://github.com/aiekick/ImGuiFileDialog
+[submodule "nfd"]
+	path = nfd
+	url = https://github.com/mlabbe/nativefiledialog

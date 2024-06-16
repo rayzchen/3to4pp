@@ -25,6 +25,7 @@
 #include <imgui_internal.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <nfd.h>
 #include "gui.h"
 #include "font.h"
 #include "control.h"
@@ -166,7 +167,7 @@ void GuiRenderer::renderGui() {
 void GuiRenderer::displayMenuBar() {
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Open", "Ctrl+O", false, false)) checkUnsaved("open another file");
+			if (ImGui::MenuItem("Open", "Ctrl+O")) checkUnsaved("open another file");
 			if (ImGui::MenuItem("Save", "Ctrl+S", false, false)) {}
 			ImGui::EndMenu();
 		}
@@ -200,6 +201,10 @@ void GuiRenderer::displayMenuBar() {
 }
 
 void GuiRenderer::displayModal() {
+    if (modalResolve) {
+    	resolveModal();
+    	modalResolve = false;
+    }
 	if (modalToggle) {
 		ImGui::SetNextWindowSize({100, 0});
 		ImGui::OpenPopup("Unsaved changes");
@@ -211,7 +216,7 @@ void GuiRenderer::displayModal() {
         ImGui::TextWrapped("Discard puzzle state and %s?", modalText.c_str());
         if (ImGui::Button("Yes", ImVec2(80, 0))) {
         	ImGui::CloseCurrentPopup();
-        	resolveModal();
+        	modalResolve = true;
         }
         ImGui::SetItemDefaultFocus();
         ImGui::SameLine();
@@ -298,6 +303,10 @@ void GuiRenderer::keyCallback(GLFWwindow* window, int key, int action, int mods)
 				checkUnsaved("scramble", 0);
 			} else if (key == GLFW_KEY_R) {
 				checkUnsaved("reset puzzle");
+			} else if (key == GLFW_KEY_O) {
+#ifndef __EMSCRIPTEN__
+				checkUnsaved("open another file");
+#endif
 			}
 		}
 	}
@@ -320,8 +329,15 @@ void GuiRenderer::resolveModal() {
 		controller->resetPuzzle();
 		controller->scramblePuzzle(modalArg);
 	} else if (modalText == "open another file") {
-		//
+#ifndef __EMSCRIPTEN__
+		nfdchar_t *outPath = NULL;
+		nfdresult_t result = NFD_OpenDialog(NULL, NULL, &outPath);
+		if (result == NFD_OKAY) {
+			std::string file(outPath);
+			controller->openFile(file);
+		}
+#endif
 	} else if (modalText == "exit") {
-		//
+		// todo
 	}
 }

@@ -73,6 +73,7 @@ class PuzzleController {
         void scramblePuzzle(int scrambleLength);
         void undoMove();
         void redoMove();
+        void openFile(std::string filename);
 
 	    static int cellKeys[];
     	static int directionKeys[];
