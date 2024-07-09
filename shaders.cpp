@@ -31,14 +31,27 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in float aColIdx;
 out float colorIndex;
 out vec3 meshPos;
+out float fragW;
 
+uniform vec3 pos;
+uniform float posw;
+uniform int swap;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform int outline;
 
 void main() {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    mat4 dimSwap = mat4(1.0);
+    dimSwap[swap][swap] = 0;
+    dimSwap[3][3] = 0;
+    dimSwap[3][swap] = 1;
+    dimSwap[swap][3] = 1;
+    float resigned = abs(sign(swap - 3)) * sign(pos[swap]) + (1 - abs(sign(swap - 3))) * -sign(posw);
+    vec4 world = model * (dimSwap * vec4(resigned * aPos * 0.7, 0.0) + vec4(pos, posw));
+    fragW = world.w;
+    world = vec4(world.xyz, 3 - world.w/2);
+    gl_Position = projection * view * world;
     if (outline == 1) {
         gl_Position.z -= 1e-4;
     }
@@ -58,6 +71,7 @@ precision mediump int;
 #define MAX_TRIANGLES 36
 in float colorIndex;
 in vec3 meshPos;
+in float fragW;
 out vec4 FragColor;
 
 uniform int border;
@@ -70,12 +84,9 @@ uniform vec3[MAX_TRIANGLES] normals;
 
 vec3 lightDir = vec3(-0.3f, -0.7f, -0.5f);
 vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
-)"
-#ifndef __EMSCRIPTEN__
-"#define LIGHTING"
-#endif
-R"(
+
 void main() {
+    if (fragW > 3) discard;
     if (border == 1) {
         FragColor = vec4(vec3(0.0f), 1.0f);
     } else if (outline == 1) {

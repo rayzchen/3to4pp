@@ -57,7 +57,7 @@ class PieceMesh {
 };
 
 typedef enum {
-    GYRO, TURN, ROTATE, GYRO_OUTER, GYRO_MIDDLE
+    GYRO, TURN
 } MoveType;
 
 struct MoveEntry {
@@ -65,60 +65,27 @@ struct MoveEntry {
     float animLength;
     CellLocation cell; // for GYRO, TURN
     RotateDirection direction; // for TURN
-    int location; // for slice gyros (-1/0/1 for middle gyros)
+    int slices; // for TURN, bit field
 };
 
 class PuzzleRenderer {
     public:
         friend class PuzzleController;
         PuzzleRenderer(Puzzle *puzzle);
-        ~PuzzleRenderer();
-        float getSpacing();
-        void setSpacing(float spacing);
-        void render1c(Shader *shader, const std::array<float, 3> pos, Color color);
-        void render2c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 2> colors, CellLocation dir);
-        void render3c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 3> colors);
-        void render4c(Shader *shader, const std::array<float, 3> pos, const std::array<Color, 4> colors, int orientation);
         void renderPuzzle(Shader *shader);
-        void renderCell(Shader *shader, const std::array<std::array<std::array<Piece, 3>, 3>, 3>& cell, float offset, std::array<int, 3> sliceFilter = {-1, -1, -1});
-        void renderSlice(Shader *shader, const std::array<std::array<Piece, 3>, 3>& slice, float offset, std::array<int, 2> stripFilter = {-1, -1});
-        void renderMiddleSlice(Shader *shader, bool addOffsetX, float offsetYZ, CellLocation filter = (CellLocation)-1);
-
-        void renderCellOutline(Shader *shader, CellLocation cell);
-        void setMousePressed(bool pressed);
-        bool updateMouse(GLFWwindow* window, double dt);
         bool updateAnimations(GLFWwindow *window, double dt, MoveEntry* entry);
         void scheduleMove(MoveEntry entry);
 
     private:
         Puzzle *puzzle;
-        PieceMesh *meshes[4];
-        float spacing;
-
-        bool mousePressed;
-        float sensitivity;
-        float lastY;
         mat4x4 model;
+        PieceMesh *mesh;
         std::queue<MoveEntry> pendingMoves;
         bool animating;
         float animationSpeed;
         float animationProgress;
 
         void renderNoAnimation(Shader *shader);
-        void renderLeftAnimation(Shader *shader, RotateDirection direction);
-        void renderRightAnimation(Shader *shader, RotateDirection direction);
-        void renderInnerAnimation(Shader *shader, RotateDirection direction);
-        void renderOuterAnimation(Shader *shader, RotateDirection direction);
-        void renderFrontBackAnimation(Shader *shader, CellLocation cell, RotateDirection direction);
-        void renderUpDownAnimation(Shader *shader, CellLocation cell, RotateDirection direction);
-        void renderRotateAnimation(Shader *shader, RotateDirection direction);
-        void renderGyroXAnimation(Shader *shader, CellLocation cell);
-        void renderGyroYAnimation(Shader *shader, CellLocation cell);
-        void renderGyroZAnimation(Shader *shader, CellLocation cell);
-        void renderOuterGyroAnimation(Shader *shader, int location);
-        void renderPGyroAnimation(Shader *shader, int direction);
-        void renderPGyroPosAnimation(Shader *shader, int direction);
-        void renderPGyroDirAnimation(Shader *shader);
 };
 
 #endif // render.h

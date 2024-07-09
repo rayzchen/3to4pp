@@ -29,6 +29,7 @@ Camera::Camera(float a_fov, float a_width, float a_height, float a_near, float a
     near = a_near;
     far = a_far;
     mat4x4_perspective(projection, fov, aspect, near, far);
+    mat4x4_ortho(projection, -3 * aspect, 3 * aspect, -3, 3, near, far);
 
     yaw = 0.0f;
     pitch = 0.0f;
@@ -121,6 +122,7 @@ void Camera::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
     this->height = height;
     this->aspect = (float)width / (float)height;
     mat4x4_perspective(this->projection, this->fov, this->aspect, this->near, this->far);
+    mat4x4_ortho(this->projection, -3 * this->aspect, 3 * this->aspect, -3, 3, this->near, this->far);
 }
 
 void Camera::setMousePressed(bool pressed) {

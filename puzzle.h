@@ -38,15 +38,7 @@ typedef enum : int {
     ZY, YZ, XZ, ZX, YX, XY
 } RotateDirection;
 
-typedef struct {
-    // Unused depending on piece type
-    Color a;
-    Color b;
-    Color c;
-    Color d;
-} Piece;
-
-typedef std::array<std::array<Piece, 3>, 3> SliceData;
+typedef std::array<std::array<Color, 3>, 3> SliceData;
 typedef std::array<SliceData, 3> CellData;
 
 class Puzzle {
@@ -56,46 +48,10 @@ class Puzzle {
         static std::array<Color, 8> scheme;
         Puzzle();
         void resetPuzzle();
-        bool canRotateCell(CellLocation cell, RotateDirection direction);
-        void rotateCell(CellLocation cell, RotateDirection direction);
-        void gyroCell(CellLocation cell);
-        void gyroOuterSlice();
-        bool canGyroMiddle(int direction);
-        void gyroMiddleSlice(int direction);
-        bool canRotatePuzzle(RotateDirection direction);
-        void rotatePuzzle(RotateDirection direction);
 
     private:
-        // [x][y][z]
-        CellData leftCell;
-        // [x][y][z]
-        CellData rightCell;
-        // [y][z]
-        SliceData innerSlice;
-        // [y][z]
-        SliceData outerSlice;
-        // Measured from innerSlice, if 2 or -2 must match outerSlicePos
-        int middleSlicePos;
-        // Only 1 or -1
-        int outerSlicePos;
-        // Either FRONT or UP
-        CellLocation middleSliceDir;
-        Piece topCell;
-        Piece bottomCell;
-        std::array<Piece, 3> frontCell;
-        std::array<Piece, 3> backCell;
-
-        void initCell(CellData& cell, Color center, const std::array<Color, 6> faces);
-        void initSlice(SliceData& slice, Color center, const std::array<Color, 4> faces);
-
-        void rotateSlice(SliceData& slice, RotateDirection direction, int sliceNum);
-        void rotateCellX(CellData& cell, RotateDirection direction);
-        void rotateCellY(CellData& cell, RotateDirection direction);
-        void rotateCellZ(CellData& cell, RotateDirection direction);
-        void rotatePSliceCell(CellLocation cell);
-        void gyroCellX(CellLocation cell);
-        void gyroCellY(CellLocation cell);
-        void gyroCellZ(CellLocation cell);
+        std::array<CellData, 8> cells;
+        void rotateSlice(int cell, int axis, int slice);
 };
 
 #endif // puzzle.h

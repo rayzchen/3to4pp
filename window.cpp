@@ -146,14 +146,15 @@ EM_BOOL onCanvasSizeChanged(int event_type, const EmscriptenUiEvent* ui_event, v
 
 void Window::run() {
     lastTime = glfwGetTime();
-    camera->setPitch(M_PI / 180 * -20);
-    camera->setYaw(M_PI / 180 * -20);
+    camera->setPitch(M_PI / 180 * -35);
+    camera->setYaw(M_PI / 180 * 45);
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthMask(GL_TRUE);
     glEnable(GL_POLYGON_OFFSET_FILL);
+    glLineWidth(1);
     glPolygonOffset(1.0, 1.0);
 
     setUpdateBuffer();
@@ -181,7 +182,6 @@ void Window::updateFunc() {
     double tick = glfwGetTime();
     double dt = tick - lastTime;
     lastTime = tick;
-    if (renderer->updateMouse(window, dt)) setUpdateBuffer();
     if (camera->updateMouse(window, dt)) setUpdateBuffer();
     if (controller->updatePuzzle(window, dt)) setUpdateBuffer();
 
@@ -203,9 +203,6 @@ void Window::draw() {
     modelShader->setMat4("projection", *camera->getProjection());
 
     renderer->renderPuzzle(modelShader);
-    if (controller->checkOutline(window, modelShader, camera->inputFlipped())) {
-        setUpdateBuffer();
-    }
     gui->renderGui();
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -258,13 +255,9 @@ void Window::mouseButtonCallback(GLFWwindow* window, int button, int action) {
     } else {
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             camera->setMousePressed(true);
-        } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
-            renderer->setMousePressed(true);
         }
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         camera->setMousePressed(false);
-    } else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE) {
-        renderer->setMousePressed(false);
     }
 }

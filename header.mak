@@ -1,4 +1,4 @@
-CPPFLAGS = -Wall -Wextra -Werror -pedantic -Wno-unused-parameter -Wno-unknown-pragmas -Iinclude -Iimgui/ -Iimgui/backends/ -Infd/src/include/
+CPPFLAGS = -Wall -Wextra -Werror -pedantic -Wno-unused-parameter -Wno-unknown-pragmas -Wno-unused-but-set-variable -Iinclude -Iimgui/ -Iimgui/backends/ -Infd/src/include/
 CXXFLAGS = --std=c++11
 ifeq ($(OS),Windows_NT)
 	CCLIBFLAGS = -Llib -lglfw3 -lopengl32 -lgdi32 -lshell32 -lole32 -luuid
