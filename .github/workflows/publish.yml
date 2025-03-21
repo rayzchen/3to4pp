@@ -1,6 +1,6 @@
 env:
-  EM_VERSION: 3.1.61
-  EM_CACHE_FOLDER: 'emsdk-cache'
+  EM_VERSION: 4.0.5
+  EM_CACHE_FOLDER: "emsdk-cache"
 
 on: [push]
 jobs:
