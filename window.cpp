@@ -163,7 +163,7 @@ void Window::run() {
     emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, window, false, onCanvasSizeChanged);
     emscripten_set_main_loop([]() {Window::current->updateFunc(); Window::current->setUpdateBuffer();}, maxFrames, true);
 #else
-    glfwSwapInterval(0);
+    glfwSwapInterval(vsync);
     while (!glfwWindowShouldClose(window)) {
         updateFunc();
     }
@@ -173,7 +173,7 @@ void Window::run() {
 void Window::updateFunc() {
     setUpdateBuffer();
     glfwPollEvents();
-    if (!(fullscreen || maxFrames == 0)) {
+    if (!(maxFrames == 0 || vsync)) {
         while (glfwGetTime() - lastTime < 1.0f / maxFrames) {
             glfwWaitEventsTimeout(1.0 / maxFrames - (glfwGetTime() - lastTime));
         }
