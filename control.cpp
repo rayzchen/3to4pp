@@ -67,7 +67,7 @@ PuzzleController::PuzzleController(PuzzleRenderer* renderer) {
     scrambleIndex = -1;
 
     std::ifstream file("scramble.txt");
-    if (!file.fail()) {
+    if (file.is_open()) {
         file >> std::ws;
         std::vector<std::array<int, 2>> moves;
         std::array<int, 2> move;
